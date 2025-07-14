@@ -4,8 +4,11 @@ import { motion } from "framer-motion"
 import contact from "@/data/cont"
 import Social from "@/components/utility/social"
 import ContactForm from "@/components/utility/contactForm"
+import Footer from "@/components/myComponents/subs/footer"
+import { useAppContext } from "@/hooks/useAppContext"
 
 const Contact = () => {
+  const { selectedVideo, setSelectedVideo, useMock } = useAppContext();
   return (
     <motion.section
       initial = {{ opacity: 0 }}

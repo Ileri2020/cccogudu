@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/resizable"
 import { ArrowUp, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useAppContext } from "@/hooks/useAppContext";
 
 const forms = [
   {
@@ -88,6 +89,8 @@ const Admin = () => {
   const [columns, setColumns] = useState<any[]>(StockColumns );
   // const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const { selectedVideo, setSelectedVideo, useMock } = useAppContext();
   
   useEffect(() => {
     fetch(`/api/data/stock?limit=10}`)

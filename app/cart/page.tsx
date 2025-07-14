@@ -8,8 +8,10 @@ import { Button } from "@/components/ui/button";
 import { PayDrawer } from "@/components/myComponents/paydrawer";
 import { BookDrawer } from '../../components/myComponents/bookdrawer';
 import { Booked } from "@/components/myComponents/booked";
+import { useAppContext } from "@/hooks/useAppContext";
 
 const Cart = () => {
+  const { selectedVideo, setSelectedVideo, useMock } = useAppContext();
   const cartItems = useSelector((state : RootState)=>state.cart.itemsList)
   // const dispatch = useDispatch();
   // const cart = (name : string, id : number, price : number) => {

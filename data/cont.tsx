@@ -4,7 +4,7 @@ import { MdOutlineMessage, MdOutlinePhone } from "react-icons/md";
 
 export default {
     title : "contact",
-    description : "If you have any questions, inquiries, or would like to collaborate with us, we would love to hear from you. Please feel free to reach out using the contact information provided below:",
+    description : "If you have any questions, inquiries, or would love to worship with us, we would love to hear from you. Please feel free to reach out using the contact information provided below:",
     team : [
         {
             position : "President",
@@ -56,19 +56,19 @@ export default {
     contact : [
         {
             icon : <MdOutlineMessage className="w-[40px] h-[40px] text-accent hover:bg-accent hover:text-slate-100 rounded-md bg-transparent border-accent border-2 p-1"/>,
-            text : "Chat to us",
-            value : "info@scienceigniteafrica.org"
+            text : "Chat with us",
+            value : "info@cccoguduexpress.com"
         },
         {
             icon : <MdOutlinePhone className="w-[40px] h-[40px] text-accent hover:bg-accent hover:text-slate-100 rounded-md bg-transparent border-accent border-2 p-1"/>,
             text : "Call us",
-            value : "+2347025297668"
+            value : "+2348169684400"
         },
         {
             icon : <CiLocationOn className="w-[40px] h-[40px] text-accent hover:bg-accent hover:text-slate-100 rounded-md bg-transparent border-accent border-2 p-1"/>,
             text : "Visit us",
-            value : "5, Adeleye Street, Ijegun, Lagos. Block 10, Zone D, Central Market Obafemi Awolowo University, Ile-Ife, Osun State, Nigeria."
+            value : "CCC Ogudu express way cathedral, express way, Ogudu, Lagos, Nigeria"
         },
     ]
-    
+     
 }

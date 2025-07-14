@@ -20,7 +20,7 @@ const Navbar = () : JSX.Element => {
               <Sidenav />
             </div>
             <Link href={"/"} className="flex-1 md:flex-none max-h-[43px] md:max-h-[50px] overflow-clip flex justify-center items-center py-5">
-                <img src="logo.png" alt="" className="w-[100px] h-auto"/>
+                <img src="logo.jpg" alt="" className="w-[100px] h-auto"/>
             </Link>
             
             

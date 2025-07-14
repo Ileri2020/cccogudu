@@ -24,31 +24,87 @@ import { Button } from "@/components/ui/button"
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { register } from '@/server/action/signup'
+import axios from 'axios'
 
 const Signup = () => {
-  const [details, setDetails] = useState({
-    userName : "",
-    email : "",
-    password : "",
-  })
+  // const [details, setDetails] = useState({
+  //   userName : "",
+  //   email : "",
+  //   password : "",
+  // })
 
-  // const [render, setRender] = useState(0);
+  // // const [render, setRender] = useState(0);
 
-  // useEffect(() => {
-  // }, [render]);
+  // // useEffect(() => {
+  // // }, [render]);
 
-  interface RefObject<T> {
-    readonly current: T | null
-  }
+  // interface RefObject<T> {
+  //   readonly current: T | null
+  // }
 
-    const form = useRef<HTMLFormElement>(null);
+  //   const form = useRef<HTMLFormElement>(null);
 
 
-    const handleChange = (e : any)=>{
-      const { name, value } = e.target;
+  //   const handleChange = (e : any)=>{
+  //     const { name, value } = e.target;
 
-      setDetails((prevFormData) => ({ ...prevFormData, [name]: value }));
+  //     setDetails((prevFormData) => ({ ...prevFormData, [name]: value }));
+  //   }
+  
+  const [users, setUsers] = useState([]);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    name: '',
+    avatarUrl: '',
+    department: 'member',
+    role: 'user',
+  });
+  const [editId, setEditId] = useState(null);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const form = useRef<HTMLFormElement>(null);
+
+  const fetchUsers = async () => {
+    const res = await axios('/api/dbhandler?model=users');
+    setUsers(res.data);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (editId) {
+      await axios.put(`/api/dbhandler?model=users&id=${editId}`, formData);
+    } else {
+      await axios.post('/api/dbhandler?model=users', formData);
     }
+    resetForm();
+    fetchUsers();
+  };
+
+  const handleEdit = (item) => {
+    setFormData(item);
+    setEditId(item.id);
+  };
+
+  const handleDelete = async (id) => {
+    await axios.delete(`/api/dbhandler?model=users&id=${id}`);
+    fetchUsers();
+  };
+
+  const resetForm = () => {
+    setFormData({
+      email: '',
+      password: '',
+      name: '',
+      avatarUrl: '',
+      department: '',
+      role: 'user',
+    });
+    setEditId(null);
+  };
 
   return (
     <div className='inline'>
@@ -62,30 +118,51 @@ const Signup = () => {
             <DrawerTitle className='w-full text-center'>Create an account with <span className='text-accent'>Succo</span></DrawerTitle>
             <DrawerDescription></DrawerDescription>
           </DrawerHeader>
-          <form ref={form  as RefObject<HTMLFormElement>} action={register} className="flex flex-col gap-4 p-10 bg-secondary rounded-xl max-w-xl">
-            <div className="/grid /grid-cols-1 /md:grid-cols-2 /gap-2 flex flex-col gap-2">
-              <div className='flex flex-row justify-between items-center'>
-                <Label htmlFor="userName">User Name :</Label>
-                <Input type="text" id='userName' name='userName' onChange={handleChange} placeholder="User name" className="rounded-sm bg-background w-56" />
-              </div>
-
-              <div className='flex flex-row justify-between items-center'>
-                <Label htmlFor="email">Email</Label>
-                <Input type="email" id="email" name="email" onChange={handleChange} placeholder="example@gmail.com" className="rounded-sm bg-background w-56" />
-              </div>
-
-              <div className='flex flex-row justify-between items-center'>
-                <Label htmlFor="password">Password</Label>
-                <Input type="password" id='password' name='password' onChange={handleChange} placeholder="*********" className="rounded-sm bg-background w-56" />
-              </div>
-            </div>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-10 bg-secondary rounded-xl max-w-xl"> 
+            <Input
+              type="email"
+              placeholder="Email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            />
+            <Input
+              type="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            />
+            <Input
+              type="text"
+              placeholder="Name"
+              value={formData.name || ''}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            />
+            <select
+              value={formData.department}
+              onChange={(e) => setFormData({ ...formData, department : e.target.value })}
+            >
+              <option value="member">Member</option>
+              <option value="choir">Choir</option>
+              <option value="youth">Youth</option>
+              <option value="worker">Worker</option>
+              <option value="parochial">Parochial</option>
+              <option value="elder">Elder</option>
+            </select>
+            {/* <select
+              value={formData.role}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+            >
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+              <option value="moderator">Moderator</option>
+            </select> */}
             
             <DrawerFooter className="flex flex-row w-full gap-2 mt-2">
               {/* <Button>Submit</Button> */}
               <DrawerClose className='flex-1' asChild>
                 <Button className='flex-1' variant="outline">Cancel</Button>
               </DrawerClose>
-              <Button type="submit" className="flex-1 before:ani-shadow w-full">Sign up &rarr;</Button>
+              <Button type="submit" className="flex-1 before:ani-shadow w-full">{editId ? 'Update' : 'Sign up'} &rarr;</Button>
             </DrawerFooter>
           </form>
           {/* <AlertDialogFooter>

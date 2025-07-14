@@ -1,7 +1,9 @@
 "use client"
+import { useAppContext } from "@/hooks/useAppContext";
 import { motion } from "framer-motion"
 
 const Help = () => {
+  const { selectedVideo, setSelectedVideo, useMock } = useAppContext();
   return (
     <motion.section
       initial = {{ opacity: 0 }}

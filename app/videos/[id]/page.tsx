@@ -1,3 +1,15 @@
+import React from 'react'
+
+const Vid = () => {
+  return (
+    <div>Vid</div>
+  )
+}
+
+export default Vid
+
+
+
 // "use client";
 // import { getVideo, putVideo } from "@/app/api/api_videos";
 // import { Button } from "@/components/button";

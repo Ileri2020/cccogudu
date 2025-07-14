@@ -63,7 +63,14 @@ const Preaching = () => {
 
   return (
     <div>
-      <div className="absolute w-[360px] flex flex-row justify-between">
+      <Tabs defaultValue="audio" className="flex flex-col lg:flex-row gap-[60px] my-5">
+        <TabsList className="flex flex-row lg:flex-col w-full max-w-[380px] lg:max-w-[280px] xl:max-w-[340px] max-h-[177px] mx-auto /xl:mx-0 gap-1 ">
+          <TabsTrigger value="audio" className='rounded-full flex-1'>Audios</TabsTrigger>
+          <TabsTrigger value="video" className='rounded-full flex-1'>Videos</TabsTrigger>
+          <TabsTrigger value="document" className='rounded-full flex-1'>Documents</TabsTrigger>
+        </TabsList>
+        <div className="min-h-[70vh] w-full">
+          <div className="absolute w-[360px] flex flex-row justify-between">
         <select value={sortOrder} onChange={handleSortChange} className="mb-4 w-20">
           <option value="asc">Asc</option>
           <option value="desc">Dsc</option>
@@ -83,13 +90,6 @@ const Preaching = () => {
           </label>
         </div>
       </div>
-      <Tabs defaultValue="audio" className="flex flex-col lg:flex-row gap-[60px] my-5">
-        <TabsList className="flex flex-row lg:flex-col w-full max-w-[380px] lg:max-w-[280px] xl:max-w-[340px] max-h-[177px] mx-auto /xl:mx-0 gap-1 ">
-          <TabsTrigger value="audio" className='rounded-full flex-1'>Audios</TabsTrigger>
-          <TabsTrigger value="video" className='rounded-full flex-1'>Videos</TabsTrigger>
-          <TabsTrigger value="document" className='rounded-full flex-1'>Documents</TabsTrigger>
-        </TabsList>
-        <div className="min-h-[70vh] w-full">
           <TabsContent value="audio" className="w-full">
             {audioPosts && audioPosts.length > 0 ? renderPosts(audioPosts) : <div className='w-full mt-20 justify-center items-center font-bold text-xl'>No audios available.</div>}
           </TabsContent>

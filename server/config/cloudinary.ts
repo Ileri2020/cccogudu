@@ -66,7 +66,7 @@ export const uploadCloudinary = async (buffer, folder) => {
   
 
 
-// export default {uploadCloudinary, cloudinary}
+export default {uploadCloudinary, cloudinary}
 
 // cloudinary.v2.api
 //   .delete_resources(['succo/img/stocks/mxaeevqkf9dop4vnv5w7'], 

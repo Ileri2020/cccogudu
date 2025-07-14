@@ -1,6 +1,5 @@
-import { NextApiRequest, NextApiResponse } from "next"
+
 import { NextRequest, NextResponse } from 'next/server';
-import cloud from "@/server/config/cloudinary"
 import Sale from "@/server/db/mongodb/models/sales";
 import connect from "@/server/config/mongodb";
 import { Types } from "mongoose";

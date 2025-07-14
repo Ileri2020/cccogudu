@@ -27,7 +27,7 @@ type fileCategory = {
   __v: number;
 };
 
-export default function Similar(props: {similar : fileCategory[]}) {
+export default function Similar(props: {similar : any}) {
   const plugin = React.useRef(
     Autoplay({ delay: 2000, stopOnInteraction: true })
   )

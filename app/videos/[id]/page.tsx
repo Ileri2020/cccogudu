@@ -10,9 +10,7 @@ import { VideoType } from "@/types/videoType";
 import { videoBlank } from "@/utils/constants";
 import { useParams, useSearchParams } from "next/navigation";
 import React, { ChangeEvent, useEffect, useState } from "react";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronsUpDown } from "lucide-react";
-import { BiComment, BiDownload, BiLike } from "react-icons/bi";
+import { BiDownload, BiLike } from "react-icons/bi";
 
 const VideoPage: React.FC = () => {
   const params = useParams();
@@ -105,7 +103,7 @@ const VideoPage: React.FC = () => {
       </h6>
 
 
-      <Comments videoId={selectedVideo.id} useMock={false} />
+      <Comments videoId={selectedVideo.id} />
     </section>
   );
 };
@@ -133,7 +131,7 @@ export function VideoCard(props : {videoObj : any , useMock : boolean, portrait 
             {/* <button  className='flex-1 text-2xl'><BiComment /></button> */}
             <button className='px-10 rounded-full text-2xl border-2 border-primary'><BiDownload /></button>
           </div>
-          <Comments videoId={props.videoObj.id} useMock = {true} />
+          <Comments videoId={props.videoObj.id}  />
         </div>
       </div>
       

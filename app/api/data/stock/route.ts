@@ -1,9 +1,7 @@
 // import nc from "next-connect"
 // import { createRouter } from "next-connect"
 // import { uploadimg } from "@/server/config/multersetup"
-import { NextApiRequest, NextApiResponse } from "next"
 import { NextRequest, NextResponse } from 'next/server';
-import cloud from "@/server/config/cloudinary"
 import Stock from "@/server/db/mongodb/models/stocks"
 // import { join } from "path";
 // import { writeFile } from "fs";
@@ -11,6 +9,7 @@ import { buffer } from "stream/consumers";
 // import glob from "glob";
 import connect from "@/server/config/mongodb";
 import { Types } from "mongoose";
+import uploadCloudinary from '@/server/config/cloudinary';
 
 
 export const GET = async (req: Request) => { //, res: NextApiResponse
@@ -77,7 +76,7 @@ export const POST = async (req: NextRequest) => {
       // await writeFile(path, file, ()=>{console.log(`file written to ${path}`)})
 
      const postStock = async () => {
-        const uploaded : any = await cloud.uploadCloudinary(file, "/succo/img/stocks")
+        const uploaded : any = await uploadCloudinary(file, "/succo/img/stocks")
         //const public_id = uploaded.public_id //path to image without extension or format
         const url = uploaded.url
         const newStock = await Stock.create({

@@ -19,17 +19,19 @@ const Navbar = () : JSX.Element => {
             <div className="lg:hidden">
               <Sidenav />
             </div>
-            <Link href={"/"} className="flex-1 md:flex-none max-h-[43px] md:max-h-[50px] overflow-clip flex justify-center items-center py-5">
-                <img src="logo.jpg" alt="" className="w-[100px] h-auto"/>
+            <Link href={"/"} className="flex-1 md:flex-none max-h-[43px] md:max-h-[50px] overflow-clip flex justify-center items-center py-5 rounded-full">
+                <img src="https://res.cloudinary.com/dc5khnuiu/image/upload/v1752566428/rny8qegs3nn2aslv77z0.jpg" alt="" className="w-[100px] h-auto"/>
             </Link>
             
             
             <Button variant={"outline"} className="lg:hidden relative flex justify-center items-center rounded-full w-[35px] h-[35px] overflow-clip text-accent text-xl"><AiOutlineSearch /></Button>
 
-            <div className="hidden lg:flex w-[23%] relative flex-row justify-center items-center my-10">
+          {/*
+          <div className="hidden lg:flex w-[23%] relative flex-row justify-center items-center my-10">
                 <Input placeholder="search" className="flex-1 border-0 dark:border-2" />
                 <Button className="absolute right-0 h-full rounded-sm text-background text-xl"><AiOutlineSearch /></Button>
             </div>
+          */}
 
 
             <div className="hidden lg:flex items-center gap-8">

@@ -152,6 +152,12 @@ model Book {
   updatedAt  DateTime @updatedAt
 }
 
+model Bible {
+  id  String @id @default(auto()) @map("_id") @db.ObjectId
+  verse String
+  page String
+}
+
 //  $ prisma [command]
 
 //     Commands

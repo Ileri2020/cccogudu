@@ -23,6 +23,12 @@ model Store {
   updatedAt  DateTime     @updatedAt
 }
 
+model Bible {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  verse String
+  page String
+}
+
 model Billboard {
   id         String       @id @default(auto()) @map("_id") @db.ObjectId
   storeId    String       @db.ObjectId

@@ -29,20 +29,24 @@ const Home = () => {
     >
       <div className="flex-1 flex flex-col md:flex-row w-full md:w-[85%] min-h-[80vh] overflow-clip mx-auto relative max-w-6xl">
         <div className="flex w-full md:w-[540px] flex-col items-center mt-5 md:mt-28 text-centers md:translate-x-40 ">
-          <div className="text-5xl font-bold text-transparent text-outline text-center md:text-start">Community Soul Fishers</div>
+          <div className="text-5xl font-extrabold text-transparent text-outline text-center md:text-start">
+            <div>CCC OGUDU</div>
+            <div>EXPRESSWAY CATHEDRAL</div>
+          </div>
           <div>
             <ZoomInText />
           </div>
         </div>
-        <Logobg />
-      </div>
       {/* <CoverCarousel numCards={5} /> */}
       <TextCarousel
       text="CCC OGUDU EXPRESS WAY CATHEDRAL***"
       speed={2000}
       image={true}
-      imageUrl="https://res.cloudinary.com/dc5khnuiu/image/upload/v1751682480/inhqujbmn3pxu9nefbuj.jpg"
+      imageUrl="https://res.cloudinary.com/dc5khnuiu/image/upload/v1752539036/m1f3yz0plpdbwnaq5a2a.webp"
+      direction="left"
     />
+      </div>
+    {/*
       <div className="h-[80vh] w-full flex justify-center">
         <div className="flex-1 flex flex-col justify-center items-center max-w-4xl">
           <div>
@@ -59,6 +63,7 @@ const Home = () => {
           </div>
         </div>
       </div>
+    */}
       {/* Testimonials */}
       <section
           className={`

@@ -70,7 +70,7 @@ const Posts = ({ page }) => {
               type={post.type} 
               id={post.id} 
               for={post.for} 
-              title={post.title} 
+              title={post.title}
             />
           )
         })

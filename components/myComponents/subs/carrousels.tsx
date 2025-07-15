@@ -57,37 +57,46 @@ interface TextCarouselProps {
     speed?: number;
     image?: boolean;
     imageUrl?: string;
+    direction?: "left" | "right";
   }
   export const TextCarousel: React.FC<TextCarouselProps> = ({
     text = 'INPUT YOUR CAROUSEL TEXT HERE',
     speed = 3000,
     image = false,
     imageUrl = 'https://res.cloudinary.com/dc5khnuiu/image/upload/v1751682480/inhqujbmn3pxu9nefbuj.jpg',
+    direction = "left" 
   }) => {
     const texts = [...text]; 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [rotationAngle, setRotationAngle] = useState(0);
 
   
-    useEffect(() => {
-        const intervalId = setInterval(() => {
-          setRotationAngle((prevAngle) => prevAngle + 7.2);
-        }, speed);
+
+          useEffect(() => {
+            const intervalId = setInterval(() => {
+              if (direction === 'right') {
+                setRotationAngle((prevAngle) => prevAngle + 7.2);
+              } else {
+                setRotationAngle((prevAngle) => prevAngle - 7.2);
+              }
+            }, speed);
+        
+            return () => clearInterval(intervalId);
+          }, [speed, direction]);
+
       
-        return () => clearInterval(intervalId);
-      }, [speed]);
       
   
     return (
       <div 
-        className="relative h-[400px] flex flex-col justify-center items-center overflow-clip"
+        className="relative h-[400px] flex flex-col justify-center items-center overflow-clip bg-background p-5 /rounded-full"
         style={{
           transformStyle: 'preserve-3d',
           perspective: '1000px',
           transform: 'rotateX(16deg)',
         }}
         >
-        <div className="absolute w-full h-full bg-secondary z-10"></div>
+        <div className="absolute w-full max-w-lg h-full z-10"></div>
         {image && (
           <img
             src={imageUrl}
@@ -98,13 +107,13 @@ interface TextCarouselProps {
       {texts.map((text, index) => (
         <div
           key={index}
-          className={`absolute self-center transform-3d /-translate-x-1/2 /-translate-y-1/2 /translate-z-[150px] text-accent text-center transform-3d ${`rotate-y-${index * 7.2}`} transition-transform duration-1000`}
+          className={`absolute /self-center top-[60%] transform-3d /bg-secondary/30 text-accent text-center transform-3d ${`rotate-y-${index * 7.2}`} transition-transform duration-1000`}
           style={{
             transform: `rotateY(${index * (360 / texts.length) + rotationAngle}deg) translateZ(190px)`,
             zIndex: Math.round(Math.cos((index * (360 / texts.length) + rotationAngle) * Math.PI / 180) * 2) * 10,
           }}                
         >
-          <h2 className="text-5xl font-bold">{text}</h2>
+          <h2 className="text-5xl font-extrabold text-outline text-accent/50">{text}</h2>
         </div>
       ))}
     </div>

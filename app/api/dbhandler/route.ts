@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
     likes: prisma.like,
     billboards: prisma.billboard,
     posts: prisma.post,
+    bible: prisma.bible,
   };
 
   const prismaModel = modelMap[model];
@@ -141,6 +142,7 @@ export async function POST(req: NextRequest) {
     likes: prisma.like,
     billboards: prisma.billboard,
     posts: prisma.post,
+    bible: prisma.bible,
   };
 
   const prismaModel = modelMap[model];
@@ -208,6 +210,7 @@ export async function PUT(req: NextRequest) {
     likes: prisma.like,
     billboards: prisma.billboard,
     posts: prisma.post,
+    bible: prisma.bible,
   };
 
   const prismaModel = modelMap[model];
@@ -265,6 +268,7 @@ export async function DELETE(req: NextRequest) {
     likes: prisma.like,
     billboards: prisma.billboard,
     posts: prisma.post,
+    bible: prisma.bible
   };
 
   const prismaModel = modelMap[model];

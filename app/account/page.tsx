@@ -14,6 +14,17 @@ import {ProfileImg} from "@/components/myComponents/subs/fileupload"
 
 const Account = () => {
   const { selectedVideo, setSelectedVideo, useMock, user, setUser } = useAppContext();
+  if (user.username === "visitor" && user.email === "nil"){
+    return(
+      <div className="w-full h-[50vh] flex flex-col justify-center items-center">
+        <div className="font-semibold text-lg text-destructive">You are not logged in</div>
+        <div className="flex flex-row gap-5">
+          <Login />
+          <Signup />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <motion.section

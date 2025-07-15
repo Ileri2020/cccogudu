@@ -59,6 +59,10 @@ const Post = (props: post) => {
 
 
   const handleLike = async () => {
+    if(user.username === "visitor" && user.email === "nil"){
+      alert("Login to react")
+      return
+    }
     try {
       if (!liked) {
         const response = await axios.post('/api/dbhandler?model=likes', {
@@ -84,6 +88,10 @@ const Post = (props: post) => {
 
 
   const postComment = async () => {
+    if(user.username === "visitor" && user.email === "nil") {
+      alert("Login to comment")
+      return
+    }
     try {
       const response = await axios.post('/api/dbhandler?model=comments', {
         userId: user.id,
@@ -157,7 +165,7 @@ const handleDelete = async () => {
       <div className='w-full flex flex-row'>
           <img src={user.avatarUrl} alt="" className='w-10 h-10 rounded-full m-1'/>
           <div className='flex flex-row w-full'>
-            <div className=' flex-1 text-xl font-semibold px-3'>{user.username}</div>
+            <div className=' flex-1 text-xl font-semibold px-3'>{props.owner}</div>
             <div className='text-sm w-14'>{formatDate(props.time)}</div>
           </div>
         </div>

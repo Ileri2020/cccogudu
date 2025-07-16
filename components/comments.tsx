@@ -49,6 +49,7 @@ const Comments = ( props : {videoId : string}) => {
 
   useEffect(() => {
     // if (!selectedVideo?.id) return;
+    
     getComments(props.videoId)
       .then((res) => {
         console.log('response comment array', res)
@@ -99,7 +100,7 @@ const Comments = ( props : {videoId : string}) => {
             comment={comments?.at(0)?.comment}
             id={comments?.at(0)?.id}
           />}
-            <div><ChevronsUpDown className="h-4 w-4" /></div>
+            <div><ChevronsUpDown className="h-4 w-4" /></div>zy
           </div>
         </CollapsibleTrigger>
       </div>

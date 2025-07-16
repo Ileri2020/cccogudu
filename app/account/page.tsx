@@ -95,7 +95,7 @@ const Account = () => {
           <EditUser />
         </div>
       </div>
-    </motion.section>
+    </motion.section> 
   )}
 
 export default Account

@@ -19,7 +19,7 @@ const Navbar = () : JSX.Element => {
             <div className="lg:hidden">
               <Sidenav />
             </div>
-            <Link href={"/"} className="flex-1 md:flex-none max-h-[43px] md:max-h-[50px] overflow-clip flex justify-center items-center py-5 rounded-full overflow-clip">
+            <Link href={"/"} className="flex-1 md:flex-none h-[43px] md:h-[50px] w-[43px] md:w-[50px] flex justify-center items-center py-5 rounded-full overflow-clip">
                 <img src="https://res.cloudinary.com/dc5khnuiu/image/upload/v1752566428/rny8qegs3nn2aslv77z0.jpg" alt="" className="w-[100px] h-auto rounded-full"/>
             </Link>
             

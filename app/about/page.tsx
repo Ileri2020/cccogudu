@@ -50,7 +50,7 @@ const About = () => {
       </section>
       <div className="flex flex-col md:flex-row md:h-[80vh] items-center md:justify-center max-w-6xl mx-auto">
         <div className="flex flex-col items-center justify-center md:flex-1 mt-10">
-          <div className="text-center text-4xl font-semibold md:mb-10">Meet the <span className="text-accent">team</span></div>
+          <div className="text-center text-4xl font-semibold md:mb-10">Meet the <span className="text-accent">Parochial</span></div>
           <Button variant={"outline"} className="border-accent text-accent text-lg  bg-transparent hover:text-slate-100 hidden md:flex">volunteer with us</Button>
         </div>
         <ScrollArea className="h-[41vh] md:h-[45vh] max-w-[720px]  self-center my-10 md:mx-20">

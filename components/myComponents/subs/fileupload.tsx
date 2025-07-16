@@ -186,6 +186,7 @@ export const PostButton = () => {
   const { user, setUser } = useAppContext();
   const isAdminOrModerator = user.role === "admin" || user.role === "moderator";
 
+  
   const [formData, setFormData] = useState({
     description: '',
     type: 'image',
@@ -209,6 +210,10 @@ export const PostButton = () => {
 
 
   const handleSubmit = async (e) => {
+    if (user.username === "visitor" && user.email === "nil"){
+      alert("login or create an account to make a post")
+      return
+    }
     e.preventDefault();
     const pformData = new FormData();
     pformData.append("file", file);

@@ -27,6 +27,7 @@ const Sidenav = () => {
                      )
                 })}
             </nav>
+            <div>Post</div>
             <PostButton />
             <div className="my-5 w-full flex flex-row">
                 <div className="flex w-full flex-1"></div>

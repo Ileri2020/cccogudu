@@ -15,14 +15,16 @@ const baseUrl = BASE_URL + "/comments";
 
 const Comments = ( props : {videoId : string}) => {
   const { user, isModal, setIsModal} = useAppContext();
-  const [comments, setComments] = useState([]); //<CommentType[]>
+  const [comments, setComments] = useState(null); //<CommentType[]>
   const [comment, setComment] = useState<string>("");
+  const [loading, setLoading] = useState(true);
 
 
 
   const getComments = async (videoId: string) => {
     try {
       const res = await axios.get(`/api/dbhandler?model=comments&id=${videoId}`);
+      console.log(res.data)
      return res.data;
     } catch (error) {
       console.log(error);
@@ -48,7 +50,11 @@ const Comments = ( props : {videoId : string}) => {
   useEffect(() => {
     // if (!selectedVideo?.id) return;
     getComments(props.videoId)
-      .then((res) => setComments(res))
+      .then((res) => {
+        console.log('response comment array', res)
+        setComments(res);
+        setLoading(false);
+      })
       .catch((err) => console.log(err));
     console.log(comments)
   }, [props.videoId]);
@@ -87,13 +93,13 @@ const Comments = ( props : {videoId : string}) => {
       <div className="flex items-center justify-between space-x-4 px-4">
         <CollapsibleTrigger asChild>
           <div className="w-full rounded-md border px-2 py-1 /hover:bg-secondary/90">
-            {(comments && comments.length > 0) && <CommentCard 
-            username={comments[0].username} 
-            createdAt={comments[0].createdAt} 
-            comment={comments[0].comment}
-            id={comments[0].id}
+            {loading&&comments?.length<1 ? <div>no comment ...</div> : <CommentCard 
+            username={comments?.at(0)?.username} 
+            createdAt={comments?.at(0)?.createdAt} 
+            comment={comments?.at(0)?.comment}
+            id={comments?.at(0)?.id}
           />}
-            <span><ChevronsUpDown className="h-4 w-4" /></span>
+            <div><ChevronsUpDown className="h-4 w-4" /></div>
           </div>
         </CollapsibleTrigger>
       </div>
@@ -101,7 +107,7 @@ const Comments = ( props : {videoId : string}) => {
       <CollapsibleContent className="space-y-2">
         <Button onClick={showModal}>Add comment</Button>
 
-        {comments.map((comment) => (
+        {comments?.map((comment) => (
           <div key={comment.id}>
             <CommentCard 
               username={comment.username} 

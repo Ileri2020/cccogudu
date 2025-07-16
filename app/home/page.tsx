@@ -73,7 +73,7 @@ const Home = () => {
 
 <div className="flex flex-col">
   <div className="mt-2 mb-12 text-4xl font-semibold text-center w-full">Upcoming Events</div>
-<ScrollArea className="relative h-[150vh] /lg:h-[80vh] w-full mx-auto flex justify-center items-center max-w-md overflow-clip" >
+<ScrollArea className="relative h-[110vh] /lg:h-[80vh] w-full mx-auto flex justify-center items-center max-w-md overflow-clip" >
         <Posts page={"event"} />
       </ScrollArea>
       </div>

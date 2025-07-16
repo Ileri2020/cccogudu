@@ -37,7 +37,7 @@ const Posts = ({ page }) => {
 
   return (
     <div className='flex flex-col w-fit mx-auto'>
-      <div className="absolute w-[360px] flex flex-row justify-between">
+      <div className="/absolute w-[360px] flex flex-row justify-between">
         <select value={sortOrder} onChange={handleSortChange} className="mb-4 w-20">
           <option value="asc">Asc</option>
           <option value="desc">Dsc</option>
@@ -64,9 +64,9 @@ const Posts = ({ page }) => {
             <Post 
               key={index} 
               url={post.url} 
-              ownerurl={post.user.avatarUrl}
+              ownerurl={(post?.user?.avatarUrl==undefined) ? 'https://res.cloudinary.com/dc5khnuiu/image/upload/v1752627019/uxokaq0djttd7gsslwj9.png' : post.user.avatarUrl}
               time={post.updatedAt} 
-              owner={post.user.username} 
+              owner={post?.user?.username == undefined ? "Engr Adepoju" : post.user.username} 
               event={post.event} 
               post={post.description} 
               type={post.type} 

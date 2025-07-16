@@ -14,6 +14,9 @@ import Footer2 from "@/components/myComponents/subs/Footer2";
 import { useAppContext } from "@/hooks/useAppContext";
 import { TestimonialsSection } from "@/components/myComponents/subs/testimonials";
 import { CoverCarousel, TextCarousel } from "@/components/myComponents/subs/carrousels";
+import Post from "@/components/myComponents/subs/post";
+import Posts from "@/components/myComponents/subs/posts";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 
 const Home = () => {
@@ -38,8 +41,11 @@ const Home = () => {
           </div>
         </div>
       {/* <CoverCarousel numCards={5} /> */}
+
+    
+
       <TextCarousel
-      text="O Good Forever ***"
+      text="O Good Forever***O Good Forever***O Good Forever***"
       speed={2000}
       image={true}
       imageUrl="https://res.cloudinary.com/dc5khnuiu/image/upload/v1752539036/m1f3yz0plpdbwnaq5a2a.webp"
@@ -64,6 +70,14 @@ const Home = () => {
         </div>
       </div>
     */}
+
+<div className="flex flex-col">
+  <div className="mt-2 mb-12 text-4xl font-semibold text-center w-full">Upcoming Events</div>
+<ScrollArea className="relative h-[150vh] /lg:h-[80vh] w-full mx-auto flex justify-center items-center max-w-md overflow-clip" >
+        <Posts page={"event"} />
+      </ScrollArea>
+      </div>
+
       {/* Testimonials */}
       <section
           className={`

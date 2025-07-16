@@ -96,7 +96,7 @@ interface TextCarouselProps {
           transform: 'rotateX(16deg)',
         }}
         >
-        <div className="absolute w-full max-w-lg h-full z-10"></div>
+        <div className="absolute w-full max-w-lg h-full z-10 bg-background/80"></div>
         {image && (
           <img
             src={imageUrl}
@@ -113,7 +113,7 @@ interface TextCarouselProps {
             zIndex: Math.round(Math.cos((index * (360 / texts.length) + rotationAngle) * Math.PI / 180) * 2) * 10,
           }}                
         >
-          <h2 className="text-5xl font-extrabold text-outline text-accent/50">{text}</h2>
+          <h2 className="text-5xl font-extrabold text-outline-primary text-accent">{text}</h2>
         </div>
       ))}
     </div>

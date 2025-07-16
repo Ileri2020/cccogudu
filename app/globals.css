@@ -108,6 +108,10 @@ body {
 }
 
 
+.text-outline-primary {
+  -webkit-text-stroke: 1.5px hsl(var(--primary));
+}
+
 .bg-blur{
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);

@@ -10,10 +10,10 @@ import TextArea from '@/components/textArea'
 
 type post = {
   url: string,
-  ownerurl: string,
+  ownerurl: string | null,
   post: string,
   time: string,
-  owner: string,
+  owner: string | null,
   event: string,
   type: string,
   title: string,
@@ -21,7 +21,10 @@ type post = {
   id: string
 }
 
-const Post = (props: post) => {
+const Post = (props: post = {
+  ownerurl : 'https://res.cloudinary.com/dc5khnuiu/image/upload/v1752627019/uxokaq0djttd7gsslwj9.png', 
+  owner : "Visitor",
+  url : "", post : "", time : "", event : "", type : "", title : "", for : "", id : ""}) => {
   const { user, isModal, setIsModal } = useAppContext();
   const [liked, setLiked] = useState(false);
   const [likeId, setLikeId] = useState(null);

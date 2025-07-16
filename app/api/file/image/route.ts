@@ -13,6 +13,9 @@ export async function POST(req , res) {
   console.log("about to upload image", Formdata)
   
   const file = Formdata.get("file")
+  if (file.size > (300 * 1024) && Formdata.get("title") === 'profile image'){
+    return NextResponse.json({"error" : "file greater 300kb"}, {status : 413})
+  }
   const buffer = await file.arrayBuffer()
   const b64 = Buffer.from(buffer).toString("base64");
   // console.log("buffer b64", b64)

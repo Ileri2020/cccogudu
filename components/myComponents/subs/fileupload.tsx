@@ -108,6 +108,9 @@ export const ProfileImg = () => {
 
   const handleImageChange = (e) => {
     const selectedFile = e.target.files[0];
+    if (selectedFile.size > 3 * 1024){
+      alert("file size greater than 300kb file may not upload")
+    }
     setFile(selectedFile);
     setPreview(URL.createObjectURL(selectedFile));
   }
@@ -130,7 +133,7 @@ export const ProfileImg = () => {
         <DrawerContent className='flex flex-col justify-center items-center py-10 /bg-red-500 max-w-5xl mx-auto'>
 
           <DrawerHeader>
-            <DrawerTitle className='w-full text-center'>Edit your profile image</DrawerTitle>
+            <DrawerTitle className='w-full text-center'>Edit your profile image (300kb max)</DrawerTitle>
             <DrawerDescription></DrawerDescription>
           </DrawerHeader>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-10 bg-secondary rounded-xl max-w-xl"> 

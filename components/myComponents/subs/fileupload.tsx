@@ -44,6 +44,7 @@ export const ProfileImg = () => {
     type: 'image',
     userId: user.id,
     title: 'profile image',
+    for: 'post',
   });
 
   const [preview, setPreview] = useState(null);
@@ -69,6 +70,7 @@ export const ProfileImg = () => {
     pformData.append("userId", user.id)
     pformData.append("title", formData.title)
     pformData.append("profileImage", "true")
+    pformData.append('for', formData.for)
     
     try {
       const response = await axios.post(`/api/file/image`, pformData);
@@ -100,6 +102,7 @@ export const ProfileImg = () => {
     type: 'image',
     userId: user.id,
     title: 'profile image',
+    for: 'post',
   });
   };
 

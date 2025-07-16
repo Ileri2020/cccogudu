@@ -17,6 +17,7 @@ import { CoverCarousel, TextCarousel } from "@/components/myComponents/subs/carr
 import Post from "@/components/myComponents/subs/post";
 import Posts from "@/components/myComponents/subs/posts";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 
 
 const Home = () => {
@@ -72,7 +73,8 @@ const Home = () => {
     */}
 
 <div className="flex flex-col">
-  <div className="mt-2 mb-12 text-4xl font-semibold text-center w-full">Upcoming Events</div>
+  <div className="mt-2 text-4xl font-semibold text-center w-full">Upcoming Events</div>
+  <div className="w-28 mx-auto my-10"><Separator /></div>
 <ScrollArea className="relative h-[110vh] /lg:h-[80vh] w-full mx-auto flex justify-center items-center max-w-md overflow-clip" >
         <Posts page={"event"} />
       </ScrollArea>

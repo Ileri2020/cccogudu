@@ -43,7 +43,7 @@ export default {Links : [
       icon: FaPhone,
     },
     {
-      name: "acc",
+      name: "account",
       path: "/account",
       icon: CgProfile,
     },

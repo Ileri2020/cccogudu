@@ -49,7 +49,8 @@ const Preaching = () => {
           key={index} 
           url={post.url} 
           time={post.updatedAt} 
-          owner={post.userId} 
+          ownerurl={post?.user?.avatarUrl}
+          owner={post?.user?.username} 
           event={post.event} 
           post={post.description} 
           type={post.type} 

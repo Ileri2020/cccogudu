@@ -10,10 +10,10 @@ import TextArea from '@/components/textArea'
 
 type post = {
   url: string,
-  ownerurl: string | null,
+  ownerurl: any,
   post: string,
   time: string,
-  owner: string | null,
+  owner: any,
   event: string,
   type: string,
   title: string,

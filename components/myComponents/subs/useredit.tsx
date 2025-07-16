@@ -131,10 +131,10 @@ const EditUser = () => {
               onChange={(e) => setFormData({ ...formData, department: e.target.value })}
             >
               <option value="member">Member</option>
-              <option value="choir">Admin</option>
-              <option value="side men">Moderator</option>
-              <option value="prophet">Admin</option>
-              <option value="minister">Admin</option>
+              <option value="choir">Choir</option>
+              <option value="side men">Side Men</option>
+              <option value="prophet">Prophet and Prophetess</option>
+              <option value="minister">Minister</option>
             </select>
             
             <DrawerFooter className="flex flex-row w-full gap-2 mt-2">

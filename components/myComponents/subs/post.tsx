@@ -10,6 +10,7 @@ import TextArea from '@/components/textArea'
 
 type post = {
   url: string,
+  ownerurl: string,
   post: string,
   time: string,
   owner: string,
@@ -163,7 +164,7 @@ const handleDelete = async () => {
       {/* {<div> <img src={props.owner} alt="" /> </div>} */}
       <div className='w-full flex flex-col justify-center items-center'>
       <div className='w-full flex flex-row'>
-          <img src={user.avatarUrl} alt="" className='w-10 h-10 rounded-full m-1'/>
+          <img src={props.ownerurl} alt="" className='w-10 h-10 rounded-full m-1'/>
           <div className='flex flex-row w-full'>
             <div className=' flex-1 text-xl font-semibold px-3'>{props.owner}</div>
             <div className='text-sm w-14'>{formatDate(props.time)}</div>

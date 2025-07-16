@@ -39,7 +39,7 @@ const Home = () => {
         </div>
       {/* <CoverCarousel numCards={5} /> */}
       <TextCarousel
-      text="CCC OGUDU EXPRESS WAY CATHEDRAL***"
+      text="O Good Forever ***"
       speed={2000}
       image={true}
       imageUrl="https://res.cloudinary.com/dc5khnuiu/image/upload/v1752539036/m1f3yz0plpdbwnaq5a2a.webp"

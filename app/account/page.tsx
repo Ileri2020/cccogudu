@@ -36,10 +36,6 @@ const Account = () => {
       className="w-[100vw] min-h-full overflow-clip"
     >
       <div className="w-full h-full flex flex-col items-center">
-        <div className="flex gap-3 my-2">
-          <Signup />
-          <Login />
-        </div>
         <div className="relative mb-10 mx-2 flex justify-center items-center">
           <div className="w-64 h-64  rounded-full flex-1 overflow-clip justify-center items-center">
             <img src={user.avatarUrl} className="w-full" alt="" />
@@ -95,7 +91,7 @@ const Account = () => {
           </div>
         </div>
         <div>
-          <Button>Logout</Button>
+          <Button onClick={()=> setUser({ username: "visitor", id: "nil", email: "nil", avatarUrl: "https://res.cloudinary.com/dc5khnuiu/image/upload/v1752627019/uxokaq0djttd7gsslwj9.png", role: "user", department: "nil", contact: "xxxx" })}>Logout</Button>
           <EditUser />
         </div>
       </div>

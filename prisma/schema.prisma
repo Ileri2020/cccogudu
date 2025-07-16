@@ -71,8 +71,9 @@ model User {
   password     String
   name         String?
   username         String?
+  sex           String
   contact         String?
-  avatarUrl    String?    //@db.ObjectId  //reference a post object image id
+  avatarUrl    String?    @default("https://res.cloudinary.com/dc5khnuiu/image/upload/v1752627019/uxokaq0djttd7gsslwj9.png")//@db.ObjectId  //reference a post object image id
   department String   //@db.ObjectId
   role         String   @default("user") // e.g., user, admin, moderator
   ministryId String   @db.ObjectId @default("684f74ca135dd6d0efeab37d")

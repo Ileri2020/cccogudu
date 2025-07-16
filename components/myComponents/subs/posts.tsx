@@ -59,12 +59,14 @@ const Posts = ({ page }) => {
       </div>
       {allpost && allpost.length > 0 ? (
         allpost.map((post, index)=>{
+          console.log(post)
           return(
             <Post 
               key={index} 
               url={post.url} 
+              ownerurl={post.user.avatarUrl}
               time={post.updatedAt} 
-              owner={post.userId} 
+              owner={post.user.username} 
               event={post.event} 
               post={post.description} 
               type={post.type} 

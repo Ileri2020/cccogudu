@@ -1,6 +1,7 @@
 "use server"
 import { PrismaClient } from '@prisma/client';
 import { NextRequest } from 'next/server';
+import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -43,6 +44,39 @@ export async function GET(req: NextRequest) {
 
   
   if (id == null){
+
+
+    if (model === 'likes' || model === 'comments' || model === 'posts')  {
+      try {
+        const items = await prismaModel.findMany();
+const userIds = items.map(item => item.userId);
+const users = await prisma.user.findMany({
+  where: {
+    id: { in: userIds },
+  },
+  select: {
+    id: true,
+    email: true,
+    username: true,
+    name: true,
+    avatarUrl: true,
+  },
+});
+
+const result = items.map(item => {
+  const user = users.find(user => user.id === item.userId);
+  return { ...item, user };
+});
+
+        return new Response(JSON.stringify(result), { status: 200, headers: { 'Content-Type': 'application/json' }, });
+      } catch (error) {
+        console.error('Database error:', error);
+        return new Response(JSON.stringify({ message: 'Database error' }), { status: 500, headers: { 'Content-Type': 'application/json' }, });
+      }
+    }
+  
+
+    
     try {
       const items = await prismaModel.findMany();
       return new Response(JSON.stringify(items), {
@@ -157,8 +191,24 @@ export async function POST(req: NextRequest) {
 
   
   try {
-    const data = body;
-    console.log("form body:", body)
+    let data = body;
+
+
+    if (model === 'users') {
+      try {
+        const hashedPassword = await bcrypt.hash(data.password, parseInt(process.env.SALT_ROUNDS));
+        data.password = hashedPassword;
+        console.log("hashed password", hashedPassword)
+      } catch (error) {
+        console.error('Error hashing password:', error);
+        return new Response(JSON.stringify({ message: 'Error hashing password' }), { status: 500, headers: { 'Content-Type': 'application/json' }, });
+      }
+    }
+    
+    
+
+
+    console.log("form body:", data)
     const newItem = await prismaModel.create({
       data,
     });

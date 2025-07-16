@@ -24,8 +24,8 @@ import { Footer3 } from "@/components/myComponents/subs/footer3";
 // });
 
 export const metadata: Metadata = {
-  title: "Succo",
-  description: "Your one stop restaurant",
+  title: "CCC Ogudu",
+  description: "All about christ",
 };
 
 
@@ -34,10 +34,10 @@ export const metadata: Metadata = {
 
 export const SEO_CONFIG = {
   description:
-    "Relivator is a robust ecommerce template built with next.js and other modern technologies. It's designed for developers who want a fast, modern, and scalable foundation without reinventing the backend.",
-  fullName: "Next csf",
-  name: "CSF",
-  slogan: "CHANGE",
+    "All about christ",
+  fullName: "CCC Ogudu Express Way Cathedral",
+  name: "CCC Ogudu",
+  slogan: "O good forever",
 };
 
 export const SYSTEM_CONFIG = {

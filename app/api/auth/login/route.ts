@@ -1,6 +1,7 @@
 "use server"
 import { PrismaClient } from '@prisma/client';
 import { NextRequest } from 'next/server';
+import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -35,24 +36,27 @@ export async function POST(req: NextRequest) {
   
   try {
     const data = body;
-    console.log("form body:", body)
     // const newItem = await prismaModel.create({
     //   data,
     // });
     const user = await prisma.user.findUnique({
       where: { email: body.email, },
     });
-    console.log("login user",user)
+    const isvalid = await bcrypt.compare(body.password, user.password)
+    if(isvalid){
     // const { id, ...updateduser } = user;
     const updateduser = user;
     return new Response(JSON.stringify(updateduser), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
+    } else {
+      throw new Error('wrong password')
+    }
   } catch (error) {
-    console.error('Database error:', error);
+    console.error('LOGIN ERROR:', error);
     return new Response(
-      JSON.stringify({ error: 'Failed to POST items' }),
+      JSON.stringify({ error: 'Failed to Login' }),
       { status: 405, headers: { 'Content-Type': 'application/json' } }
     );
   }

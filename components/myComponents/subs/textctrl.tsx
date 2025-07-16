@@ -309,48 +309,38 @@ export const BounceInText = () => {
 
 
 
+
+
+
 export const ZoomInText = () => {
-  //const texts = ['Jesus wept', 'The joy of the lord is my strength', 'They that wait upon the Lord shall renew their strength', 'For we have not received the spirit of fear but of love, strength'];
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const texts = jsontext
+  const texts = jsontext;
+  const [currentIndex, setCurrentIndex] = useState(Math.floor(Math.random() * texts.length));
 
-  useEffect(()=>{
-    const interval = setInterval(()=>{
-        setCurrentIndex((prevIndex)=>(prevIndex+1)%texts.length)
-    },6000)
-    return()=>clearInterval(interval)
-  },[currentIndex])
-
-  const Temp = () => {
-    return (
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{
-            scale: 1,
-            transition: {
-              duration: 1.0,
-              delay: 0.5,
-            },
-          }}
-          className="text-lg font-bold text-gray-800 text-center text-foreground/80 dark:text-slate-200"
-        >
-        
-          <div className=" p-2">
-      {texts[currentIndex].verse}
-    </div>
-          <div className="text-sm">
-      {texts[currentIndex].page}
-    </div>
-        </motion.div>
-    )
-  }
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex(Math.floor(Math.random() * texts.length));
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [texts]);
 
   return (
     <div className="container mx-auto p-4 h-36">
-      <Temp />
+      <motion.div
+        key={currentIndex}
+        initial={{ scale: 0 }}
+        animate={{ scale: 1, transition: { duration: 1.0, delay: 0.5 } }}
+        className="text-lg font-bold text-gray-800 text-center text-foreground/80 dark:text-slate-200"
+      >
+        <div className="p-2">{texts[currentIndex].verse}</div>
+        <div className="text-sm">{texts[currentIndex].page}</div>
+      </motion.div>
     </div>
   );
 };
+
+
+
+
 
 
 

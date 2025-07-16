@@ -12,7 +12,7 @@ const Nav = () => {
       {Links.Links.map((link, index) => {
         return (
           <Link href={link.path} key={index} className={` ${link.path === pathname && "text-accent border-b-2 border-accent border-none outline-none"} capitalize font-medium hover:text-accent transition-all`}>
-            {<link.icon />} {link.name}
+            {<link.icon />}
           </Link>
         )
       })}

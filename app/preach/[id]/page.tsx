@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Post from '@/components/myComponents/subs/post';
+import { PostButton } from '@/components/myComponents/subs/fileupload';
 
 const Preaching = () => {
   const [allpost, setallpost] = useState(null);
@@ -69,6 +70,7 @@ const Preaching = () => {
           <TabsTrigger value="audio" className='rounded-full flex-1'>Audios</TabsTrigger>
           <TabsTrigger value="video" className='rounded-full flex-1'>Videos</TabsTrigger>
           <TabsTrigger value="document" className='rounded-full flex-1'>Documents</TabsTrigger>
+          <PostButton />
         </TabsList>
         <div className="min-h-[70vh] w-full">
           <div className="absolute w-[360px] flex flex-row justify-between">

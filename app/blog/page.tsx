@@ -12,7 +12,7 @@ const Blog = () => {
   let plan = "a tab for community account posts, projects done, testimonies, upcoming event posts date/calendar"
   return (
     <Tabs defaultValue="post" className="flex flex-col lg:flex-row gap-[60px] mt-5">
-      <TabsList className="flex flex-row lg:flex-col w-full max-w-[380px] lg:max-w-[280px] xl:max-w-[340px] max-h-[240px] mx-auto xl:mx-0 gap-6 ">
+      <TabsList className="flex flex-row lg:flex-col w-full max-w-sm lg:max-w-[280px] xl:max-w-[340px] max-h-[240px] mx-auto xl:mx-0 gap-2 lg:gap-6 ">
         <TabsTrigger value="post" className='rounded-full flex-1'>Posts</TabsTrigger>
         <TabsTrigger value="event" className='rounded-full flex-1'>Event</TabsTrigger>
         <TabsTrigger value="project" className='rounded-full flex-1'>Projects</TabsTrigger>

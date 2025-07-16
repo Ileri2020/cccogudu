@@ -6,6 +6,7 @@ import { CiMenuFries } from "react-icons/ci"
 import Links from "../../data/links";
 import { ModeToggle } from '@/components/ui/mode-toggle'
 import { usePathname } from 'next/navigation';
+import { PostButton } from "../myComponents/subs/fileupload";
 
 const Sidenav = () => {
     const pathname = usePathname();                 
@@ -26,6 +27,7 @@ const Sidenav = () => {
                      )
                 })}
             </nav>
+            <PostButton />
             <div className="my-5 w-full flex flex-row">
                 <div className="flex w-full flex-1"></div>
                 <ModeToggle />

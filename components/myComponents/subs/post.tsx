@@ -59,6 +59,7 @@ const Post = (props: post = {
 
   useEffect(() => {
     fetchLikeCount();
+    console.log('post id', props.id)
   }, [liked, reload]);
 
 
@@ -91,16 +92,17 @@ const Post = (props: post = {
 
 
 
-  const postComment = async () => {
+  const postComment = async (id : any) => {
     if(user.username === "visitor" && user.email === "nil") {
       alert("Login to comment")
       return
     }
     try {
+      console.log('comment id', id)
       const response = await axios.post('/api/dbhandler?model=comments', {
         userId: user.id,
         username: user.username,
-        contentId: props.id,
+        contentId: id,
         comment: comment,
       });
       if (response.status === 200) {
@@ -208,7 +210,7 @@ const handleDelete = async () => {
           {isModal && (
           <Modal
             close={() => setIsModal(false)}
-            save={postComment}
+            save={()=>postComment(props.id)}
             isSaveAllowed={comment.length > 0}
             className="bg-secondary overflow-clip"
           >

@@ -59,19 +59,16 @@ const Signup = () => {
     avatarUrl: '',
     department: 'member',
     role: 'user',
+    sex: 'male'
   });
   const [editId, setEditId] = useState(null);
 
   useEffect(() => {
-    fetchUsers();
+
   }, []);
 
   const form = useRef<HTMLFormElement>(null);
 
-  const fetchUsers = async () => {
-    const res = await axios('/api/dbhandler?model=users');
-    setUsers(res.data);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -81,7 +78,6 @@ const Signup = () => {
       await axios.post('/api/dbhandler?model=users', formData);
     }
     resetForm();
-    fetchUsers();
   };
 
   const handleEdit = (item) => {
@@ -91,7 +87,6 @@ const Signup = () => {
 
   const handleDelete = async (id) => {
     await axios.delete(`/api/dbhandler?model=users&id=${id}`);
-    fetchUsers();
   };
 
   const resetForm = () => {
@@ -102,6 +97,7 @@ const Signup = () => {
       avatarUrl: '',
       department: '',
       role: 'user',
+      sex: 'male'
     });
     setEditId(null);
   };
@@ -148,14 +144,13 @@ const Signup = () => {
               <option value="parochial">Parochial</option>
               <option value="elder">Elder</option>
             </select>
-            {/* <select
-              value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+            <select
+              value={formData.sex}
+              onChange={(e) => setFormData({ ...formData, sex: e.target.value })}
             >
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-              <option value="moderator">Moderator</option>
-            </select> */}
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
             
             <DrawerFooter className="flex flex-row w-full gap-2 mt-2">
               {/* <Button>Submit</Button> */}

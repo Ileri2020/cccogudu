@@ -36,7 +36,7 @@ const Account = () => {
       className="w-[100vw] min-h-full overflow-clip"
     >
       <div className="w-full h-full flex flex-col items-center">
-        <div className="relative mb-10 mx-2 flex justify-center items-center">
+        <div className="relative my-10 mx-2 flex justify-center items-center">
           <div className="w-64 h-64  rounded-full flex-1 overflow-clip justify-center items-center">
             <img src={user.avatarUrl} className="w-full" alt="" />
           </div>

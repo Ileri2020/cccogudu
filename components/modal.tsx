@@ -6,7 +6,7 @@ interface ModalProps {
   children?: React.ReactNode;
   className?: string;
   close: () => void;
-  save: () => void;
+  save: () => any
   isSaveAllowed?: boolean;
 }
 

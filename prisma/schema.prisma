@@ -71,10 +71,10 @@ model User {
   password     String
   name         String?
   username         String?
-  sex           String
+  sex           String?
   contact         String?
   avatarUrl    String?    @default("https://res.cloudinary.com/dc5khnuiu/image/upload/v1752627019/uxokaq0djttd7gsslwj9.png")//@db.ObjectId  //reference a post object image id
-  department String   //@db.ObjectId
+  department String?   //@db.ObjectId
   role         String   @default("user") // e.g., user, admin, moderator
   ministryId String   @db.ObjectId @default("684f74ca135dd6d0efeab37d")
   createdAt    DateTime @default(now())
@@ -88,7 +88,7 @@ model Department {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   ministryId  String   @db.ObjectId // Reference to Ministry
   name        String
-  imgUrl      String
+  imgUrl      String?
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -96,11 +96,11 @@ model Department {
 
 model Comment {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  ministryId String   @db.ObjectId @default("684f74ca135dd6d0efeab37d")
+  ministryId String?   @db.ObjectId @default("684f74ca135dd6d0efeab37d")
   contentId  String   @db.ObjectId
   userId     String   @db.ObjectId
   username     String
-  comment  String
+  comment  String?
   isArchived Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -114,7 +114,7 @@ model Post {
   ministryId  String   @db.ObjectId @default("684f74ca135dd6d0efeab37d")
   title       String
   description String?
-  for       String        @default("post")  //event, project, testimony, service, preching
+  for       String?        @default("post")  //event, project, testimony, service, preching
   url    String // URL to the image hosted somewhere
   type String
   userId     String   @db.ObjectId
@@ -131,7 +131,7 @@ model Post {
 
 model Like {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  ministryId String   @db.ObjectId @default("684f74ca135dd6d0efeab37d")
+  ministryId String?   @db.ObjectId @default("684f74ca135dd6d0efeab37d")
   contentId  String   @db.ObjectId
   userId     String   @db.ObjectId
   // isArchived   Boolean      @default(false)
@@ -143,7 +143,7 @@ model Like {
 
 model Book {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  ministryId String   @db.ObjectId @default("684f74ca135dd6d0efeab37d")
+  ministryId String?   @db.ObjectId @default("684f74ca135dd6d0efeab37d")
   title      String
   author     String?
   coverUrl   String?

@@ -59,7 +59,7 @@ const Posts = ({ page }) => {
       </div>
       {allpost && allpost.length > 0 ? (
         allpost.map((post, index)=>{
-          console.log(post)
+          //console.log('post', index, 'post id', post.id)
           return(
             <Post 
               key={index} 

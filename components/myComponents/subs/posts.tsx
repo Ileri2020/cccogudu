@@ -23,7 +23,7 @@ const Posts = ({ page }) => {
         const posts = response.data;
         
         let filteredPosts = posts.filter(post => post.for === page );// && postTypes[post.type]
-        // filteredPosts = filteredPosts.sort((a, b) => sortOrder === 'asc' ? new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime() : new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+        filteredPosts = filteredPosts.sort((a, b) => sortOrder === 'asc' ? new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime() : new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
         setallpost(filteredPosts);
         console.log('all post', filteredPosts)
       })
@@ -294,7 +294,7 @@ const handleDelete = async () => {
                 className='bg-secondary overflow-clip relative flex flex-col sm:w-full md:w-3/4
                   min-h-[200px] max-h-[40%] p-4 bg-m-base-end border-2 border-accent rounded-lg'
                 >
-                <div className="font-semibold text-base my-2">@{user.username} {post.id}</div>
+                <div className="font-semibold text-base my-2">@{user.username}</div>
                 <TextArea onChange={(e) => setComment(e.target.value)} className="h-[15%]" />
                 <div className="absolute flex gap-3 justify-center bottom-2 right-2 w-full max-w-sm">
                   <Button variant="outline" onClick={() => setIsModal(false)} className="flex-1">Cancel</Button>

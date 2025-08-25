@@ -49,7 +49,7 @@ const Home = () => {
       text="O Good Forever***O Good Forever***O Good Forever***"
       speed={2000}
       image={true}
-      imageUrl="https://res.cloudinary.com/dc5khnuiu/image/upload/v1752539036/m1f3yz0plpdbwnaq5a2a.webp"
+      imageUrl="./crown.webp"
       direction="left"
     />
       </div>

@@ -352,15 +352,15 @@ const Comments = ( props : {videoId : string}) => {
         <CollapsibleTrigger asChild>
           <div className="w-full rounded-md border px-2 py-1 /hover:bg-secondary/90">
             {compComments?.length<1 ? <div>no comment ...</div> : <div>
-              {/* <div>{props.videoId}</div> */}
               <CommentCard 
                 username={compComments?.at(0)?.username} 
                 createdAt={compComments?.at(0)?.createdAt} 
                 comment={compComments?.at(0)?.comment}
                 id={compComments?.at(0)?.id}
               />
+              <div className="text-sm text-foreground/50">...more</div>
             </div>}
-            <div><ChevronsUpDown className="h-4 w-4" /></div>
+            {/* <div><ChevronsUpDown className="h-4 w-4" /></div> */}
           </div>
         </CollapsibleTrigger>
       </div>

@@ -22,8 +22,8 @@ interface ProfileCardProps {
           </div>
         </div>
         <div className="my-2">
-          <div className="font-medium text-lg text-accent w-full text-center">Papa Oshofa</div>
-          <div className="font-normal text-sm text-[#78858F]">Pastor Founder</div>
+          <div className="font-medium text-lg text-accent w-full text-center">{name}</div>
+          <div className="font-normal text-sm text-[#78858F]">{title}</div>
         </div>
       </div>
     );

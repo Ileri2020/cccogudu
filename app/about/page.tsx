@@ -59,10 +59,10 @@ const About = () => {
             </div>
           </div>
           <div className="grid grid-cols-2 gap-5 max-w-[580px] my-5">
-            {[{name : 'Papa Oshofa', title : 'Pastor Founder', img : "./placeholderMale.jpg"},
-              {name : 'Papa Oshofa', title : 'Pastor Founder', img : "./placeholderMale.jpg"},
-              {name : 'Shepherd Name', title : 'Shephard', img : "./placeholderMale.jpg"},
-              {name : 'Asst Shepherd Name', title : 'Asst Shepherd', img : "./placeholderMale.jpg"},
+            {[{name : 'Papa Oshofa', title : 'Pastor Founder', img : "./papaoshofa.jpg"},
+              {name : 'Daddy Bada', title : 'Asst Pastor Founder', img : "./papabada.jpg"},
+              {name : 'Shepherd Name', title : 'Shephard', img : "./shephard.jpg"},
+              {name : 'Asst Shepherd Name', title : 'Asst Shepherd', img : "./shephardasst.jpg"},
             ].map((profile, index)=>{
               return(
                 <div key={index} >

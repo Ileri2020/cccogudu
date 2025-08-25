@@ -31,19 +31,19 @@ const Comments = ( props : {videoId : string}) => {
     }
   };
   
-  const postComment = async (videoId: string) => {
-    try {
-      const response = await axios.post('/api/dbhandler?model=comments', {
-        userId: user.id,
-        username: user.username,
-        contentId: videoId,
-        comment: comment,
-      });
-      return response.data;
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  // const postComment = async (videoId: string) => {
+  //   try {
+  //     const response = await axios.post('/api/dbhandler?model=comments', {
+  //       userId: user.id,
+  //       username: user.username,
+  //       contentId: videoId,
+  //       comment: comment,
+  //     });
+  //     return response.data;
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
 
 
 
@@ -73,14 +73,14 @@ const Comments = ( props : {videoId : string}) => {
   const save = () => {
     if (!validate()) return;
     console.log('video id', props.videoId)
-    postComment(props.videoId)
-      .then(() => {
-        // request a list of new videos, because there is no ID  in the response
-        getComments(props.videoId)
-          .then((res) => setComments(res.comments))
-          .catch((err) => console.log(err));
-      })
-      .finally(() => setComment(""));
+    // postComment(props.videoId)
+      // .then(() => {
+      //   // request a list of new videos, because there is no ID  in the response
+      //   getComments(props.videoId)
+      //     .then((res) => setComments(res.comments))
+      //     .catch((err) => console.log(err));
+      // })
+      // .finally(() => setComment(""));
     setIsModal(false);
   };
   //for collapsible
@@ -107,7 +107,7 @@ const Comments = ( props : {videoId : string}) => {
       </div>
 
       <CollapsibleContent className="space-y-2">
-        <Button onClick={showModal}>Add comment</Button>
+        {/* <Button onClick={showModal}>Add comment</Button> */}
 
         {compComments?.map((comment) => (
           <div key={comment.id}>

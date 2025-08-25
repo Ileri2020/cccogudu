@@ -12,6 +12,8 @@ import Countup from "react-countup"
 import contact from "@/data/cont"
 import Footer from "@/components/myComponents/subs/footer"
 import { useAppContext } from "@/hooks/useAppContext"
+import { cn } from "@/lib/utils"
+import { ProfileCard } from "@/components/myComponents/subs/profileCards"
 
 const About = () => {
   const { selectedVideo, setSelectedVideo, useMock } = useAppContext();
@@ -26,9 +28,9 @@ const About = () => {
     >
       <section className="md:max-w-[1200px] md:mx-auto md:h-[80vh]">
         <div className="flex flex-col md:flex-row md:justify-between mx-5 md:mx-10 mt-5">
-        <span className="text-4xl font-semibold">About <span className="text-accent">us</span></span>
+          <span className="text-4xl font-semibold">About <span className="text-accent">us</span></span>
         </div>
-        <div className="flex flex-col md:flex-row mx-4 md:m-5">
+        {/* <div className="flex flex-col md:flex-row mx-4 md:m-5">
           <div className="flex-1 mx-2 md:mx-10 my-5 text-secondary-foreground text-center md:text-start">{Stats.about}</div>
           <div className="flex-1 grid grid-cols-2 gap-5 max-w-[580px] my-5">
             {Stats.stats.map((stat, index)=>{
@@ -46,12 +48,35 @@ const About = () => {
               )
             })}
           </div>
+        </div> */}
+        <div className="flex flex-col md:flex-row mx-4 md:m-5">
+          <div className="flex flex-1 w-full my-5 flex-col  text-center md:text-start">
+            <div className="mx-2 md:mx-10 text-secondary-foreground\r">
+              {'Brief history of the foundation of celestial church of christ'}
+            </div>
+            <div className="mx-2 md:mx-10 text-secondary-foreground">
+              {'Brief history ofabout CCC Ogudu express way cathedral.'}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-5 max-w-[580px] my-5">
+            {[{name : 'Papa Oshofa', title : 'Pastor Founder', img : "./placeholderMale.jpg"},
+              {name : 'Papa Oshofa', title : 'Pastor Founder', img : "./placeholderMale.jpg"},
+              {name : 'Shepherd Name', title : 'Shephard', img : "./placeholderMale.jpg"},
+              {name : 'Asst Shepherd Name', title : 'Asst Shepherd', img : "./placeholderMale.jpg"},
+            ].map((profile, index)=>{
+              return(
+                <div key={index} >
+                  <ProfileCard name={profile.name} title={profile.title} profileImage={profile.img} />
+                </div>
+              )
+            })}
+          </div>
         </div>
       </section>
-      <div className="flex flex-col md:flex-row md:h-[80vh] items-center md:justify-center max-w-6xl mx-auto">
+      <section className="flex flex-col md:flex-row md:h-[80vh] items-center md:justify-center max-w-6xl mx-auto">
         <div className="flex flex-col items-center justify-center md:flex-1 mt-10">
           <div className="text-center text-4xl font-semibold md:mb-10">Meet the <span className="text-accent">Parochial</span></div>
-          <Button variant={"outline"} className="border-accent text-accent text-lg  bg-transparent hover:text-slate-100 hidden md:flex">volunteer with us</Button>
+          <Button variant={"outline"} className="border-accent text-accent text-lg  bg-transparent hover:text-slate-100 hidden md:flex">volunteer</Button>
         </div>
         <ScrollArea className="h-[41vh] md:h-[45vh] max-w-[720px]  self-center my-10 md:mx-20">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-5">
@@ -66,26 +91,107 @@ const About = () => {
           </div>
         </ScrollArea>
         <Button variant={"outline"} className="border-accent text-accent text-lg  bg-transparent hover:text-slate-100 max-w-[220px] flex md:hidden">volunteer with us</Button>
-      </div>
-      <div className="flex flex-col /md:flex-row bg-secondary md:bg-background rounded-lg mt-10 /py-10 max-w-6xl md:mx-auto md:px-5">
-        <div className="flex flex-col items-center justify-center flex-1">
-          <div className="text-center text-4xl font-semibold my-10">Meet our <span className="text-accent">partners</span></div>
-          <Button variant={"outline"} className="border-accent text-accent bg-transparent hover:text-slate-100 hidden">I will become a sponsor</Button>
+      </section>
+
+
+      <section className="flex flex-col md:flex-row md:h-[80vh] items-center md:justify-center max-w-6xl mx-auto">
+        <div className="flex flex-col items-center justify-center md:flex-1 mt-10">
+          <div className="text-center text-4xl font-semibold md:mb-10">Meet the <span className="text-accent">Parochial</span></div>
+          <Button variant={"outline"} className="border-accent text-accent text-lg  bg-transparent hover:text-slate-100 hidden md:flex">volunteer</Button>
         </div>
-        <div className="grid grid-cols-2 /md:grid-cols-3 md:flex md:gap-5 max-w-[720px] my-5 md:mx-20 self-center">
-          {contact.partners.map((partner, index)=>{
-            return (
-              <div key={index}>
-                <img src={partner.uri} alt="" className="w-[150px] h-[120px] md:mx-5"/>
-                
-              </div>
-            )
-          })}
+        <ScrollArea className="h-[41vh] md:h-[45vh] max-w-[720px]  self-center my-10 md:mx-20">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-5">
+            {contact.team.map((member, index)=>{
+              return (
+                <div key={index} className="bg-secondary max-w-[170px] h-[20vh] rounded-lg p-5 flex flex-col justify-center">
+                  <div className="font-semibold text-center text-lg">{member.name}</div>
+                  <div className="text-center text-sm text-accent">{member.position}</div>
+                </div>
+              )
+            })}
+          </div>
+        </ScrollArea>
+        <Button variant={"outline"} className="border-accent text-accent text-lg  bg-transparent hover:text-slate-100 max-w-[220px] flex md:hidden">volunteer with us</Button>
+      </section>
+
+
+      <section className="flex flex-col md:flex-row md:h-[80vh] items-center md:justify-center max-w-6xl mx-auto">
+        <div className="flex flex-col items-center justify-center md:flex-1 mt-10">
+          <div className="text-center text-4xl font-semibold md:mb-10">Meet the <span className="text-accent">Ministers</span></div>
+          <Button variant={"outline"} className="border-accent text-accent text-lg  bg-transparent hover:text-slate-100 hidden md:flex">volunteer</Button>
         </div>
-        <Button variant={"outline"} className="border-accent text-accent text-lg bg-transparent hover:text-slate-100 self-center my-5 flex md:hidden">I will become a sponsor</Button>
-      </div>
+        <ScrollArea className="h-[41vh] md:h-[45vh] max-w-[720px]  self-center my-10 md:mx-20">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-5">
+            {contact.team.map((member, index)=>{
+              return (
+                <div key={index} className="bg-secondary max-w-[170px] h-[20vh] rounded-lg p-5 flex flex-col justify-center">
+                  <div className="font-semibold text-center text-lg">{member.name}</div>
+                  <div className="text-center text-sm text-accent">{member.position}</div>
+                </div>
+              )
+            })}
+          </div>
+        </ScrollArea>
+        <Button variant={"outline"} className="border-accent text-accent text-lg  bg-transparent hover:text-slate-100 max-w-[220px] flex md:hidden">volunteer with us</Button>
+      </section>
+      
+      
+      <section className="flex flex-col md:flex-row md:h-[80vh] items-center md:justify-center max-w-6xl mx-auto">
+        <div className="flex flex-col items-center justify-center md:flex-1 mt-10">
+          <div className="text-center text-4xl font-semibold md:mb-10">Meet the <span className="text-accent">Department Leaders</span></div>
+          <Button variant={"outline"} className="border-accent text-accent text-lg  bg-transparent hover:text-slate-100 hidden md:flex">volunteer</Button>
+        </div>
+        <ScrollArea className="h-[41vh] md:h-[45vh] max-w-[720px]  self-center my-10 md:mx-20">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-5">
+            {contact.team.map((member, index)=>{
+              return (
+                <div key={index} className="bg-secondary max-w-[170px] h-[20vh] rounded-lg p-5 flex flex-col justify-center">
+                  <div className="font-semibold text-center text-lg">{member.name}</div>
+                  <div className="text-center text-sm text-accent">{member.position}</div>
+                </div>
+              )
+            })}
+          </div>
+        </ScrollArea>
+        <Button variant={"outline"} className="border-accent text-accent text-lg  bg-transparent hover:text-slate-100 max-w-[220px] flex md:hidden">volunteer with us</Button>
+      </section>
+
+
+      <section className="flex flex-col md:flex-row md:h-[80vh] items-center md:justify-center max-w-6xl mx-auto">
+        <div className="flex flex-col items-center justify-center md:flex-1 mt-10">
+          <div className="text-center text-4xl font-semibold md:mb-10">Meet the <span className="text-accent">Harvest Committee</span></div>
+          <Button variant={"outline"} className="border-accent text-accent text-lg  bg-transparent hover:text-slate-100 hidden md:flex">volunteer</Button>
+        </div>
+        <ScrollArea className="h-[41vh] md:h-[45vh] max-w-[720px]  self-center my-10 md:mx-20">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-5">
+            {contact.team.map((member, index)=>{
+              return (
+                <div key={index} className="bg-secondary max-w-[170px] h-[20vh] rounded-lg p-5 flex flex-col justify-center">
+                  <div className="font-semibold text-center text-lg">{member.name}</div>
+                  <div className="text-center text-sm text-accent">{member.position}</div>
+                </div>
+              )
+            })}
+          </div>
+        </ScrollArea>
+        <Button variant={"outline"} className="border-accent text-accent text-lg  bg-transparent hover:text-slate-100 max-w-[220px] flex md:hidden">volunteer with us</Button>
+      </section>
     </motion.section>
   )
 }
 
 export default About
+
+
+
+
+
+
+
+
+
+
+
+
+
+

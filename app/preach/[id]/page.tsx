@@ -46,19 +46,12 @@ const Preaching = () => {
   const renderPosts = (posts) => {
     return posts.map((post, index)=>{
       return(
-        <Post 
-          key={index} 
-          url={post.url} 
-          time={post.updatedAt} 
-          ownerurl={post?.user?.avatarUrl}
-          owner={post?.user?.username} 
-          event={post.event} 
-          post={post.description} 
-          type={post.type} 
-          id={post.id} 
-          for={post.for} 
-          title={post.title} 
-        />
+        <div key={post.id}>
+          <div>{post.id}</div>
+          <Post
+            post={{...post, index : index}} 
+          />
+        </div>
       )
     })
   }

@@ -255,7 +255,12 @@ const handleDelete = async () => {
         <div className='w-full flex flex-col justify-center items-center'>
           {post.type === 'image' && <img src={post.url} alt="" className='w-full m-1'/>}
           {post.type === 'video' && (
-            <video controls src={post.url} className="w-full max-w-[360px] my-2" />
+            <video 
+              controls 
+              src={post.url} 
+              className="w-full max-w-[360px] my-2"
+              onPlay={() => console.log(`Media ID: ${post.id}`)}
+            />
           )}
           {post.type === 'audio' && (
             <audio controls>
@@ -351,7 +356,7 @@ const Comments = ( props : {videoId : string}) => {
       <div className="flex items-center justify-between space-x-4 px-4">
         <CollapsibleTrigger asChild>
           <div className="w-full rounded-md border px-2 py-1 /hover:bg-secondary/90">
-            {compComments?.length<1 ? <div>no comment ...</div> : <div>
+            {compComments?.length<1 ? <div>... no comment</div> : <div>
               <CommentCard 
                 username={compComments?.at(0)?.username} 
                 createdAt={compComments?.at(0)?.createdAt} 

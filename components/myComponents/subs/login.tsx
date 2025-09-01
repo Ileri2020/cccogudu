@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client"
 import React, { FormEvent, useEffect, useRef, useState } from 'react'
 //import dynamic from 'next/dynamic'

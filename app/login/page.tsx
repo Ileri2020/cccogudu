@@ -63,7 +63,6 @@ const Login = async () => {
       </form>
       <form
         action={async () => {
-          "use server";
           await signIn("google");
         }}
       >

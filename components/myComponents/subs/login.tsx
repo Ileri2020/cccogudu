@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 "use client"
 import React, { FormEvent, useEffect, useRef, useState } from 'react'
 //import dynamic from 'next/dynamic'
@@ -115,7 +115,6 @@ const Login = () => {
           <div className="m-2">
             <form
               action={async () => {
-                "use server";
                 await signIn("google");
               }}
             >

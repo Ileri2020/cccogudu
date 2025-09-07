@@ -121,8 +121,8 @@ model Post {
   duration    String?  @default("nill") // e.g., "5:30" (MM:SS)
   // plays        Int      @default(0)
   // thumbnailUrl String?   
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime? @default(now())
+  updatedAt   DateTime? @updatedAt
 
   // @@index([productId])
 }

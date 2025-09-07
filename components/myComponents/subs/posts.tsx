@@ -11,6 +11,8 @@ import { commentsObject } from "@/mock/comments";
 import { BASE_URL, headers } from "@/utils/constants";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import CommentCard from '@/components/commentCard';
+import { PrismaClient } from '@prisma/client';
+import deletemanypost, { createManyPosts } from './postaction';
 
 const Posts = ({ page }) => {
   const [allpost, setallpost] = useState(null);
@@ -21,11 +23,11 @@ const Posts = ({ page }) => {
     axios.get('/api/dbhandler', { params: { model: 'posts', } })
       .then(response => {
         const posts = response.data;
-        
-        let filteredPosts = posts.filter(post => post.for === page );// && postTypes[post.type]
+        console.log('all post page', page)
+        let filteredPosts = posts.filter(post => post.for == page );// && postTypes[post.type]
         filteredPosts = filteredPosts.sort((a, b) => sortOrder === 'asc' ? new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime() : new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
         setallpost(filteredPosts);
-        console.log('all post', filteredPosts)
+        console.log('all filtered post', filteredPosts)
       })
       .catch(error => {
         console.error(error);
@@ -54,6 +56,7 @@ const Posts = ({ page }) => {
           <option value="desc">Dsc</option>
         </select>
         <div className="mb-4">
+          {/* <Button onClick={createManyPosts}>create many post</Button> */}
           <label>
             <input type="checkbox" name="video" checked={postTypes.video} onChange={handlePostTypeChange} />
             Video

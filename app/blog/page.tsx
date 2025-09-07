@@ -16,7 +16,7 @@ const Blog = () => {
         <TabsTrigger value="post" className='rounded-full flex-1'>Posts</TabsTrigger>
         <TabsTrigger value="event" className='rounded-full flex-1'>Event</TabsTrigger>
         <TabsTrigger value="project" className='rounded-full flex-1'>Projects</TabsTrigger>
-        <TabsTrigger value="testimony" className='rounded-full flex-1'>Testimony</TabsTrigger>
+        <TabsTrigger value="praisevideo" className='rounded-full flex-1'>Praise</TabsTrigger>
         <PostButton />
       </TabsList>
       <ScrollArea className="lg:h-[80vh] w-full">
@@ -29,8 +29,8 @@ const Blog = () => {
         <TabsContent value="project" className="w-full">
           <Posts page="project" />
         </TabsContent>
-        <TabsContent value="testimony" className="w-full">
-          <Posts page="testimony" />
+        <TabsContent value="praisevideo" className="w-full">
+          <Posts page="praisevideo" />
         </TabsContent>
       </ScrollArea>
     </Tabs>

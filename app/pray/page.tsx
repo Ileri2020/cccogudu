@@ -29,6 +29,7 @@ export default function Pray() {
     // Enable automatic audio/video quality optimization
     dynacast: true,
   }));
+  const { user } = useAppContext();
   const [token, setToken] = useState('');
   const [room, setRoom] = useState('');
   const [name, setName] = useState('');
@@ -38,6 +39,18 @@ export default function Pray() {
   const fetchMeetings = async () => {
     try {
       const response = await axios.get(`/api/dbhandler?model=meetings`);
+      if (user.role=='admin'){
+        const meetingsData = response.data;
+        const now = new Date();
+        const fortyEightHoursLater = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+
+        meetingsData.forEach(async (meeting) => {
+          const meetingDate = new Date(meeting.dateTime);
+          if (meetingDate < fortyEightHoursLater) {
+            await handleDelete(meeting.id);
+          }
+        });
+      }
       if (response.status === 200) {
         setMeetings(response.data)
       }
@@ -46,7 +59,11 @@ export default function Pray() {
     }
   };
 
-  const fetchtoken = async () => {
+
+  
+
+
+  const joinMeeting =async (room : String, name : String)=>{
     try {
       const resp = await fetch(`/api/token?room=${room}&username=${name}`);
       const data = await resp.json();
@@ -62,10 +79,17 @@ export default function Pray() {
     }
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    fetchtoken();
-  }
+
+  const handleDelete = async (id: string) => {
+    // if (!confirm('Are you sure you want to delete this meeting?')) return;
+    try {
+      await axios.delete(`/api/dbhandler?model=meetings&id=${id}`);
+      fetchMeetings();
+    } catch (err) {
+      alert('Failed to delete meeting.');
+    }
+  };
+
 
   useEffect(() => {
     fetchMeetings()
@@ -76,48 +100,54 @@ export default function Pray() {
 
   return (
     <RoomContext.Provider value={roomInstance}>
-      <div>
+      {(user.role==='admin') ?
+        <Schedule />  : <div></div>
+      }
+      {((token === '')&& !isConnected) ? (
+        <div className='flex flex-col w-full px-2'>
         {
-          (meetings.length < 1) ? <div>no scheduled service or meeting</div> :  <div>
-            {meetings.map((meeting, index)=>{
-              return <div>
-                <div>{meeting.roomName}</div>
-                <div>{meeting.description}</div>
-                <div>
-                  {!meeting.password ? (
-                    <div>🔓</div> // Open padlock emoji/icon
-                  ) : (
-                    <div>🔒</div> // Locked padlock emoji/icon for meetings with password
-                  )}
-                </div>
-              </div>
-            })}
-          </div>
+          (meetings.length < 1) ? (
+            <div>no scheduled service or meeting</div>
+          ) : (
+            <div className='flex flex-col gap-2 w-full text-center justify-center items-center'>
+              <div className='text-xl font-bold m-2'>Available Meetings</div>
+              {meetings.map((meeting, index) => {
+                const isFutureMeeting = new Date(meeting.dateTime) > new Date();
+                return (
+                  <div key={meeting.id} className='flex p-2 flex-col w-full max-w-sm justify-between bg-secondary rounded-sm mx-auto'>
+                    <div className='font-bold text-lg flex flex-row w-full max-w-sm justify-between'>
+                      <div>{meeting.roomName}</div>
+                      <div className='text-xs'>
+                        <span>{new Date(meeting.dateTime).toLocaleString()}</span>
+                        {!meeting.password ? (<span>🔓</span>) : (<span>🔒</span>)}
+                      </div>
+                    </div>
+                    <div className='flex flex-row justify-between w-full'>
+                      <div className='text-xs text-foreground/50'>{meeting.description}</div>
+                      <Button
+                        disabled={isFutureMeeting}
+                        className={isFutureMeeting ? 'opacity-50 cursor-not-allowed' : ''}
+                        onClick={() => {
+                          if (!isFutureMeeting) {
+                            joinMeeting(meeting.roomName, user.username);
+                          }
+                        }}
+                      >
+                        {isFutureMeeting ? 'Pending Meeting' : 'Join Meeting'}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )
+          
         }
       </div>
-      <div>
-        {/* <form onSubmit={handleSubmit} className='flex flex-col gap-2 p-2 m-2 bg-secondary w-[300px] rounded-lg'>
-          <Input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Name"
-          />
-          <Input
-            type="text"
-            value={room}
-            onChange={(e) => setRoom(e.target.value)}
-            placeholder="Room"
-          />
-          <Button type="submit">Join Room</Button>
-        </form> */}
-        <Schedule />
-      </div>
-      {((token === '')&& !isConnected) ? (
-        <div>Please join a room</div>
       ) : (
         <div className='w-full flex justify-center items-center mx-auto'>
-          <div data-lk-theme="default" className='h-[50vh] max-w-3xl bg-secondary rounded-lg flex flex-col overflow-clip m-2'>
+          <div data-lk-theme="default" className='relative h-[50vh] max-w-3xl bg-secondary rounded-lg flex flex-col overflow-clip m-2'>
+          <button onClick={()=>{setToken(''); setIsConnected(false)}} className='absolute top-0 right-0 m-1 bg-red-600 w-10 h-10 text-center justify-center items-center rounded-s-md'>X</button>
             {/* Your custom component with basic video conferencing functionality. */}
             <MyVideoConference />
             {/* The RoomAudioRenderer takes care of room-wide audio for you. */}
@@ -213,10 +243,10 @@ const Schedule = () => {
   };
 
   return (
-    <div>
+    <div className='mx-auto my-2'>
       <Drawer>
         <DrawerTrigger asChild>
-          <Button>Schedule Meeting</Button>
+          <Button className='mx-5'>Schedule Meeting</Button>
         </DrawerTrigger>
         <DrawerContent className='flex flex-col justify-center items-center py-10 /bg-red-500 max-w-5xl mx-auto'>
 

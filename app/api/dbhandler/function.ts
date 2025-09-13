@@ -6,12 +6,14 @@ const prisma = new PrismaClient();
 const modelMap = {
   ministries: prisma.ministry,
   departments: prisma.department,
-  books: prisma.book,
   users: prisma.user,
   comments: prisma.comment,
   likes: prisma.like,
   billboards: prisma.billboard,
   posts: prisma.post,
+  bible: prisma.bible,
+  meetings : prisma.meeting,
+  playlists : prisma.playlist,
 };
 
 async function dbHandler({

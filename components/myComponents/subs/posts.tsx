@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { BiLike, BiSolidLike, BiComment, BiDownload } from 'react-icons/bi'
 import { Button } from '@/components/ui/button'
@@ -21,7 +21,7 @@ import deletemanypost, { createManyPosts } from './postaction';
 
 const Posts = ({ page }) => {
   const [allPosts, setAllPosts] = useState([]);
-  const [sortOrder, setSortOrder] = useState('desc');
+  const [sortOrder, setSortOrder] = useState('random');
   const [postTypes, setPostTypes] = useState({
     video: true,
     audio: true,
@@ -29,7 +29,9 @@ const Posts = ({ page }) => {
   });
   const [displayedPosts, setDisplayedPosts] = useState([]);
   const [currentChunk, setCurrentChunk] = useState(0);
-  const postsPerChunk = 10;
+  const postsPerChunk = 3;
+  const loadMoreRef = useRef(null);
+  const observerRef = useRef(null);
 
   const fetchAllPosts = () => {
     axios.get('/api/dbhandler', {
@@ -38,9 +40,7 @@ const Posts = ({ page }) => {
       .then(response => {
         const posts = response.data;
         let filteredPosts = posts.filter(post => post.for === page && postTypes[post.type]);
-        filteredPosts = filteredPosts.sort((a, b) => sortOrder === 'asc'
-          ? new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
-          : new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+        filteredPosts = sortPosts(filteredPosts, sortOrder); // Use sortPosts function
         setAllPosts(filteredPosts);
         setDisplayedPosts(filteredPosts.slice(0, postsPerChunk));
         setCurrentChunk(0);
@@ -48,12 +48,38 @@ const Posts = ({ page }) => {
       .catch(error => console.error(error));
   };
 
+  const sortPosts = (posts, order) => {
+    if (order === 'asc') {
+      return posts.sort((a, b) => new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime());
+    } else if (order === 'desc') {
+      return posts.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    } else if (order === 'random') {
+      return [...posts].sort(() => Math.random() - 0.5); // Fisher-Yates shuffle alternative
+    }
+    return posts;
+  };
+
+
   useEffect(() => {
     fetchAllPosts();
   }, [sortOrder, postTypes, page]);
 
-  const handleSortChange = (e) => setSortOrder(e.target.value);
 
+  useEffect(() => {
+    if ('IntersectionObserver' in window && loadMoreRef.current) {
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && displayedPosts.length < allPosts.length) {
+          handleLoadMore();
+        }
+      }, {
+        rootMargin: '100px', // Load when 100px from viewport
+      });
+      observerRef.current.observe(loadMoreRef.current);
+      return () => observerRef.current.disconnect();
+    }
+  }, [displayedPosts, allPosts]);
+
+  const handleSortChange = (e) => setSortOrder(e.target.value);
   const handlePostTypeChange = (e) => {
     setPostTypes({ ...postTypes, [e.target.name]: e.target.checked });
   };
@@ -74,6 +100,7 @@ const Posts = ({ page }) => {
       {/* Controls */}
       <div className="flex flex-row justify-between">
         <select value={sortOrder} onChange={handleSortChange}>
+          <option value="random">Random</option>
           <option value="asc">Asc</option>
           <option value="desc">Desc</option>
         </select>
@@ -104,13 +131,20 @@ const Posts = ({ page }) => {
         <div>No {page}s available.</div>
       )}
 
-      {/* Load More Button */}
+      {/* Load Trigger */}
       {displayedPosts.length < allPosts.length && (
-        <button onClick={handleLoadMore}>Load More</button>
+        <div ref={loadMoreRef}>
+          {'IntersectionObserver' in window ? (
+            <div className="invisible">Loading...</div> // Trigger for observer
+          ) : (
+            <button onClick={handleLoadMore}>Load More</button> // Fallback button
+          )}
+        </div>
       )}
     </div>
   );
 };
+
 
 export default Posts;
 
@@ -238,11 +272,31 @@ const Post = ({post})=>{
   };
   
 
+  const mediaRef = useRef(null);
+  const observerRef = useRef(null);
+  const isPlaying = useRef(false);
 
   useEffect(() => {
-    fetchLikeCount();
-    console.log('post id', post.id)
-  }, [liked, reload]);
+    if (mediaRef.current && 'IntersectionObserver' in window) {
+      observerRef.current = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !isPlaying.current) {
+            // Play if in viewport and not already playing
+            mediaRef.current.play().catch(e => console.log('Play error:', e));
+            isPlaying.current = true;
+          } else if (!entry.isIntersecting && isPlaying.current) {
+            // Pause if out of viewport and playing
+            mediaRef.current.pause();
+            isPlaying.current = false;
+          }
+        });
+      }, {
+        threshold: 0.5, // Trigger when 50% in viewport
+      });
+      observerRef.current.observe(mediaRef.current);
+      return () => observerRef.current.disconnect();
+    }
+  }, [post.type, post.url]);
 
 
   const handleLike = async () => {
@@ -357,22 +411,19 @@ const handleDelete = async () => {
           </div>
         </div>
         <div className='w-full flex flex-col justify-center items-center'>
-          {post.type === 'image' && <img src={post.url} alt="" className='w-full m-1'/>}
-          {post.type === 'video' && (
-            <video 
-              controls 
-              src={post.url} 
-              className="w-full max-w-[360px] my-2"
-              onPlay={() => console.log(`Media ID: ${post.id}`)}
-            />
-          )}
-          {post.type === 'audio' && (
-            <audio controls>
-              <source src={post.url} type="audio/mpeg" />
-              Your browser does not support the audio tag.
-            </audio>
-          )}
-        </div>
+        {post.type === 'image' && <img src={post.url} alt="" className='w-full m-1'/>}
+        {post.type === 'video' && (
+          <video
+            ref={mediaRef}
+            src={post.url}
+            className="w-full max-w-[360px] my-2"
+            //muted // Consider adding muted for autoplay-like behavior
+          />
+        )}
+        {post.type === 'audio' && (
+          <audio ref={mediaRef} src={post.url} />
+        )}
+      </div>
         <div className="w-full bg-secondary pb-2">
           <div className='w-full flex flex-col p-2'>
             {post.for !== 'post' && (

@@ -17,6 +17,7 @@ interface Comment {
 interface AppContextProps {
   // isDark: boolean;
   // setIsDark: (isDark: boolean) => void;
+  origin: string;
   isList: boolean;
   setIsList: (isList: boolean) => void;
   videos: VideoType[];
@@ -46,10 +47,13 @@ export const AppContextProvider: React.FC<any> = ({ children }) => {
   const [isModal, setIsModal] = useState(false);
   const [useMock, setUseMock] = useState(true);
   const [comments, setComments] = useState([])
+  const origin = 'http://localhost:3000'
+  //const origin = 'https://cccogudu.onrender.com'
 
   const appContextValues: AppContextProps = {
     // isDark,
     // setIsDark,
+    origin,
     isList,
     setIsList,
     videos,

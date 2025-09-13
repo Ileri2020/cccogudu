@@ -77,6 +77,11 @@ model User {
   department String?   //@db.ObjectId
   role         String   @default("user") // e.g., user, admin, moderator
   ministryId String   @db.ObjectId @default("684f74ca135dd6d0efeab37d")
+  posts     Post[]
+  likes     Like[]
+  comments    Comment[]
+  playlists   Playlist[]
+  meeting     Meeting[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -97,7 +102,9 @@ model Department {
 model Comment {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   ministryId String?   @db.ObjectId @default("684f74ca135dd6d0efeab37d")
+  content     Post    @relation(fields: [contentId], references: [id])
   contentId  String   @db.ObjectId
+  user      User    @relation(fields: [userId], references: [id])
   userId     String   @db.ObjectId
   username     String
   comment  String?
@@ -117,8 +124,13 @@ model Post {
   for       String?        @default("post")  //event, project, testimony, service, preching
   url    String // URL to the image hosted somewhere
   type String
+  user  User?    @relation(fields: [userId], references: [id])
   userId     String   @db.ObjectId
   duration    String?  @default("nill") // e.g., "5:30" (MM:SS)
+  comments    Comment[]
+  likes     Like[]
+  playlists   Playlist[]  @relation(fields: [playlistsId], references: [id])
+  playlistsId   String[]  @db.ObjectId
   // plays        Int      @default(0)
   // thumbnailUrl String?   
   createdAt   DateTime? @default(now())
@@ -132,7 +144,9 @@ model Post {
 model Like {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   ministryId String?   @db.ObjectId @default("684f74ca135dd6d0efeab37d")
+  content     Post    @relation(fields: [contentId], references: [id])
   contentId  String   @db.ObjectId
+  user      User    @relation(fields: [userId], references: [id])
   userId     String   @db.ObjectId
   // isArchived   Boolean      @default(false)
   createdAt  DateTime @default(now())
@@ -141,22 +155,47 @@ model Like {
 
 
 
-model Book {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  ministryId String?   @db.ObjectId @default("684f74ca135dd6d0efeab37d")
-  title      String
-  author     String?
-  coverUrl   String?
-  fileUrl    String // PDF or EPUB link
-  downloads  Int      @default(0)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-}
+//model Book {
+//  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+//  ministryId String?   @db.ObjectId @default("684f74ca135dd6d0efeab37d")
+//  title      String
+//  author     String?
+//  coverUrl   String?
+//  fileUrl    String // PDF or EPUB link
+//  downloads  Int      @default(0)
+//  createdAt  DateTime @default(now())
+//  updatedAt  DateTime @updatedAt
+//}
 
 model Bible {
   id  String @id @default(auto()) @map("_id") @db.ObjectId
   verse String
   page String
+}
+
+model Playlist {
+  id    String  @id @default(auto())  @map("_id") @db.ObjectId
+  user    User  @relation(fields: [userId], references: [id])
+  userId  String  @db.ObjectId
+  posts   Post[]    @relation(fields: [postsId],  references: [id])
+  postsId   String[]    @db.ObjectId
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+
+model Meeting {
+  id  String  @id @default(auto())  @map("_id") @db.ObjectId
+  admin   User  @relation(fields: [adminId], references: [id])
+  adminId   String  @db.ObjectId
+  roomName    String
+  description   String?
+  roomId      String  @unique
+  save      Boolean @default(false)
+  dateTime    DateTime
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  roomPassword  String?
 }
 
 //  $ prisma [command]

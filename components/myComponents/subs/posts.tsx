@@ -14,49 +14,70 @@ import CommentCard from '@/components/commentCard';
 import { PrismaClient } from '@prisma/client';
 import deletemanypost, { createManyPosts } from './postaction';
 
-const Posts = ({ page }) => {
-  const [allpost, setallpost] = useState(null);
-  const [sortOrder, setSortOrder] = useState('desc');
-  const [postTypes, setPostTypes] = useState({ video: true, audio: true, image: true, });
 
-  const fetchallpost = () =>{
-    axios.get('/api/dbhandler', { params: { model: 'posts', } })
+
+
+
+
+const Posts = ({ page }) => {
+  const [allPosts, setAllPosts] = useState([]);
+  const [sortOrder, setSortOrder] = useState('desc');
+  const [postTypes, setPostTypes] = useState({
+    video: true,
+    audio: true,
+    image: true,
+  });
+  const [displayedPosts, setDisplayedPosts] = useState([]);
+  const [currentChunk, setCurrentChunk] = useState(0);
+  const postsPerChunk = 10;
+
+  const fetchAllPosts = () => {
+    axios.get('/api/dbhandler', {
+      params: { model: 'posts' },
+    })
       .then(response => {
         const posts = response.data;
-        console.log('all post page', page)
-        let filteredPosts = posts.filter(post => post.for == page );// && postTypes[post.type]
-        filteredPosts = filteredPosts.sort((a, b) => sortOrder === 'asc' ? new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime() : new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-        setallpost(filteredPosts);
-        console.log('all filtered post', filteredPosts)
+        let filteredPosts = posts.filter(post => post.for === page && postTypes[post.type]);
+        filteredPosts = filteredPosts.sort((a, b) => sortOrder === 'asc'
+          ? new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
+          : new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+        setAllPosts(filteredPosts);
+        setDisplayedPosts(filteredPosts.slice(0, postsPerChunk));
+        setCurrentChunk(0);
       })
-      .catch(error => {
-        console.error(error);
-      });
-  }
+      .catch(error => console.error(error));
+  };
 
   useEffect(() => {
-    fetchallpost();
+    fetchAllPosts();
   }, [sortOrder, postTypes, page]);
 
-  const handleSortChange = (e) => {
-    setSortOrder(e.target.value);
-  }
+  const handleSortChange = (e) => setSortOrder(e.target.value);
 
   const handlePostTypeChange = (e) => {
-    setPostTypes({ ...postTypes, [e.target.name]: e.target.checked, });
-  }
+    setPostTypes({ ...postTypes, [e.target.name]: e.target.checked });
+  };
 
-  if (!allpost) return <div>Loading...</div>;
+  const handleLoadMore = () => {
+    const nextChunk = currentChunk + 1;
+    const start = nextChunk * postsPerChunk;
+    const end = start + postsPerChunk;
+    const newDisplayedPosts = [...displayedPosts, ...allPosts.slice(start, end)];
+    setDisplayedPosts(newDisplayedPosts);
+    setCurrentChunk(nextChunk);
+  };
+
+  if (!allPosts.length) return <div>Loading...</div>;
 
   return (
     <div className='flex flex-col w-fit mx-auto'>
-      <div className="/absolute w-[360px] flex flex-row justify-between">
-        <select value={sortOrder} onChange={handleSortChange} className="mb-4 w-20">
+      {/* Controls */}
+      <div className="flex flex-row justify-between">
+        <select value={sortOrder} onChange={handleSortChange}>
           <option value="asc">Asc</option>
-          <option value="desc">Dsc</option>
+          <option value="desc">Desc</option>
         </select>
-        <div className="mb-4">
-          {/* <Button onClick={createManyPosts}>create many post</Button> */}
+        <div>
           <label>
             <input type="checkbox" name="video" checked={postTypes.video} onChange={handlePostTypeChange} />
             Video
@@ -71,26 +92,106 @@ const Posts = ({ page }) => {
           </label>
         </div>
       </div>
-      {/* <div>{<Post post={allpost[2]}/>}</div> */}
-      {allpost && allpost.length > 0 ? (
-        allpost.map((post, index)=>{
-          //console.log('post', index, 'post id', post.id)
-          return(
-            <div key={post.id}>
-              <Post
-                post={{...post, index : index}} 
-              />
-            </div>
-          )
-        })
+
+      {/* Posts */}
+      {displayedPosts.length > 0 ? (
+        displayedPosts.map((post, index) => (
+          <div key={post.id}>
+            <Post post={{ ...post, index }} />
+          </div>
+        ))
       ) : (
-        <div className='w-full mt-20 justify-center items-center font-bold text-xl'>No {page}s available.</div>
+        <div>No {page}s available.</div>
+      )}
+
+      {/* Load More Button */}
+      {displayedPosts.length < allPosts.length && (
+        <button onClick={handleLoadMore}>Load More</button>
       )}
     </div>
-  )
-}
+  );
+};
 
 export default Posts;
+
+
+// const Posts = ({ page }) => {
+//   const [allpost, setallpost] = useState(null);
+//   const [sortOrder, setSortOrder] = useState('desc');
+//   const [postTypes, setPostTypes] = useState({ video: true, audio: true, image: true, });
+
+//   const fetchallpost = () =>{
+//     axios.get('/api/dbhandler', { params: { model: 'posts', } })
+//       .then(response => {
+//         const posts = response.data;
+//         console.log('all post page', page)
+//         let filteredPosts = posts.filter(post => post.for == page );// && postTypes[post.type]
+//         filteredPosts = filteredPosts.sort((a, b) => sortOrder === 'asc' ? new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime() : new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+//         setallpost(filteredPosts);
+//         console.log('all filtered post', filteredPosts)
+//       })
+//       .catch(error => {
+//         console.error(error);
+//       });
+//   }
+
+//   useEffect(() => {
+//     fetchallpost();
+//   }, [sortOrder, postTypes, page]);
+
+//   const handleSortChange = (e) => {
+//     setSortOrder(e.target.value);
+//   }
+
+//   const handlePostTypeChange = (e) => {
+//     setPostTypes({ ...postTypes, [e.target.name]: e.target.checked, });
+//   }
+
+//   if (!allpost) return <div>Loading...</div>;
+
+//   return (
+//     <div className='flex flex-col w-fit mx-auto'>
+//       <div className="/absolute w-[360px] flex flex-row justify-between">
+//         <select value={sortOrder} onChange={handleSortChange} className="mb-4 w-20">
+//           <option value="asc">Asc</option>
+//           <option value="desc">Dsc</option>
+//         </select>
+//         <div className="mb-4">
+//           {/* <Button onClick={createManyPosts}>create many post</Button> */}
+//           <label>
+//             <input type="checkbox" name="video" checked={postTypes.video} onChange={handlePostTypeChange} />
+//             Video
+//           </label>
+//           <label className="ml-4">
+//             <input type="checkbox" name="audio" checked={postTypes.audio} onChange={handlePostTypeChange} />
+//             Audio
+//           </label>
+//           <label className="ml-4">
+//             <input type="checkbox" name="image" checked={postTypes.image} onChange={handlePostTypeChange} />
+//             Image
+//           </label>
+//         </div>
+//       </div>
+//       {/* <div>{<Post post={allpost[2]}/>}</div> */}
+//       {allpost && allpost.length > 0 ? (
+//         allpost.map((post, index)=>{
+//           //console.log('post', index, 'post id', post.id)
+//           return(
+//             <div key={post.id}>
+//               <Post
+//                 post={{...post, index : index}} 
+//               />
+//             </div>
+//           )
+//         })
+//       ) : (
+//         <div className='w-full mt-20 justify-center items-center font-bold text-xl'>No {page}s available.</div>
+//       )}
+//     </div>
+//   )
+// }
+
+// export default Posts;
 
 
 

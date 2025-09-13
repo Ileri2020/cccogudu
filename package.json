@@ -2,11 +2,13 @@
   "name": "my-app",
   "version": "0.1.0",
   "private": true,
+  "workspaces":["./cld/js"],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "cldstart": "node cldindex.js"
   },
   "packageManager": "npm@10.9.0",
   "overrides": {

@@ -36,10 +36,10 @@ const deletemanypost = () =>{
 export default deletemanypost
 
 
-export const createManyPosts = async () => {
+export const createManyPosts = async (posts = posttocreate) => {
     try {
       const createdPosts = await prisma.post.createMany({
-        data: posttocreate,
+        data: posts,
       });
       console.log('many post created', createdPosts)
       return

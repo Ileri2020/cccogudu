@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "query cloudinary api",
   "type": "module",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "start": "node index.js"
   },

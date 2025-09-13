@@ -23,13 +23,14 @@ export async function GET(req: NextRequest) {
   const modelMap = {
     ministries: prisma.ministry,
     departments: prisma.department,
-    books: prisma.book,
     users: prisma.user,
     comments: prisma.comment,
     likes: prisma.like,
     billboards: prisma.billboard,
     posts: prisma.post,
     bible: prisma.bible,
+    meetings : prisma.meeting,
+    playlists : prisma.playlist,
   };
 
   const prismaModel = modelMap[model];
@@ -49,24 +50,24 @@ export async function GET(req: NextRequest) {
     if (model === 'likes' || model === 'comments' || model === 'posts')  {
       try {
         const items = await prismaModel.findMany();
-const userIds = items.map(item => item.userId);
-const users = await prisma.user.findMany({
-  where: {
-    id: { in: userIds },
-  },
-  select: {
-    id: true,
-    email: true,
-    username: true,
-    name: true,
-    avatarUrl: true,
-  },
-});
+        const userIds = items.map(item => item.userId);
+        const users = await prisma.user.findMany({
+          where: {
+            id: { in: userIds },
+          },
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            name: true,
+            avatarUrl: true,
+          },
+        });
 
-const result = items.map(item => {
-  const user = users.find(user => user.id === item.userId);
-  return { ...item, user };
-});
+        const result = items.map(item => {
+          const user = users.find(user => user.id === item.userId);
+          return { ...item, user };
+        });
 
         return new Response(JSON.stringify(result), { status: 200, headers: { 'Content-Type': 'application/json' }, });
       } catch (error) {
@@ -170,13 +171,14 @@ export async function POST(req: NextRequest) {
   const modelMap = {
     ministries: prisma.ministry,
     departments: prisma.department,
-    books: prisma.book,
     users: prisma.user,
     comments: prisma.comment,
     likes: prisma.like,
     billboards: prisma.billboard,
     posts: prisma.post,
     bible: prisma.bible,
+    meetings : prisma.meeting,
+    playlists : prisma.playlist,
   };
 
   const prismaModel = modelMap[model];
@@ -254,13 +256,14 @@ export async function PUT(req: NextRequest) {
   const modelMap = {
     ministries: prisma.ministry,
     departments: prisma.department,
-    books: prisma.book,
     users: prisma.user,
     comments: prisma.comment,
     likes: prisma.like,
     billboards: prisma.billboard,
     posts: prisma.post,
     bible: prisma.bible,
+    meetings : prisma.meeting,
+    playlists : prisma.playlist,
   };
 
   const prismaModel = modelMap[model];
@@ -312,13 +315,14 @@ export async function DELETE(req: NextRequest) {
   const modelMap = {
     ministries: prisma.ministry,
     departments: prisma.department,
-    books: prisma.book,
     users: prisma.user,
     comments: prisma.comment,
     likes: prisma.like,
     billboards: prisma.billboard,
     posts: prisma.post,
-    bible: prisma.bible
+    bible: prisma.bible,
+    meetings : prisma.meeting,
+    playlists : prisma.playlist,
   };
 
   const prismaModel = modelMap[model];

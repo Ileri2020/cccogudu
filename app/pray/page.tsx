@@ -81,6 +81,7 @@ export default function Pray() {
 
 
   const handleDelete = async (id: string) => {
+    if (user.role != 'admin') return
     // if (!confirm('Are you sure you want to delete this meeting?')) return;
     try {
       await axios.delete(`/api/dbhandler?model=meetings&id=${id}`);

@@ -53,31 +53,28 @@ cloudinary.config({
 
 
     
-  // Extract display_name and url, create new objects
-  const extractedData = result.resources.map(resource => ({
-    ministryId,
-    title: resource.display_name,
-    description: '',
-    for: forValue,
-    url: resource.url,
-    //type: resource.resource_type,
-    type,
-    userId,
-    duration: "nill",
-    // createdAt: currentTime,
-    // updatedAt: currentTime,
-  }));
+   // Extract display_name and url, create new objects
+   const extractedData = result.resources.map(resource => {
+    // Process display_name: replace '_' with ' ', remove last 6 chars
+    const processedTitle = resource.display_name
+      .replace(/_/g, ' ') // Replace underscores with spaces
+      .slice(0, -6); // Remove last 6 characters
+    return {
+      ministryId,
+      title: processedTitle,
+      description: '',
+      for: forValue,
+      url: resource.url,
+      type,
+      userId,
+      duration: "nill",
+    };
+  });
 
   // Write extracted data to a new JSON file
   await fs.writeFile(`extracted-cloudinary-assets-${asset_folder}.json`, JSON.stringify(extractedData, null, 2));
-  createManyPosts(extractedData)
+  createManyPosts(extractedData);
   console.log(`Extracted Cloudinary assets for ${asset_folder} saved to extracted-cloudinary-assets-${asset_folder}.json`);
-
-
-  } catch (error) {
-    console.log('Error getting Cloudinary resources', error);
-    // Optionally write the error to a file
-    //await fs.writeFile(`cloudinary-error-${asset_folder}.txt`, JSON.stringify(error, null, 2));
-    //console.log(`Cloudinary error for ${asset_folder} saved to cloudinary-error-${asset_folder}.txt`);
-  }
-  
+} catch (error) {
+  console.log('Error getting Cloudinary resources', error);
+}

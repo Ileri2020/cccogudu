@@ -193,18 +193,21 @@ const handleDelete = async () => {
         {/* <Link href={postUrl} className='relative'> */}
           <div className='w-full flex flex-col justify-center items-center'>
             {post.type === 'image' && <img src={post.url} alt="" className='w-full m-1'/>}
-            {post.type === 'video' && (
+            {/* {post.type === 'video' && (
               isLoading ? (
                 <Skeleton className="w-full max-w-[360px] h-[200px] my-2" />
               ) : (
-                <video
-                  ref={mediaRef}
-                  src={post.url}
-                  className="w-full max-w-[360px] my-2"
-                  onLoadedData={() => setIsLoading(false)}
+                <video ref={mediaRef} src={post.url} className="w-full max-w-[360px] my-2"
+                  onLoadedData={() => {console.log('on can play through triggered');setIsLoading(false)}}
                   onError={() => setIsLoading(false)}
                 />
               )
+            )} */}
+            {post.type === 'video' &&  (
+                <video ref={mediaRef} src={post.url} className="w-full max-w-[360px] my-2"
+                  onCanPlay={() => setIsLoading(false)}
+                  onError={() => setIsLoading(false)}
+                />
             )}
             {post.type === 'audio' && (
               isLoading ? (

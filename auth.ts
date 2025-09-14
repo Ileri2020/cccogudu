@@ -13,6 +13,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true, 
   providers: [
     // Github({
     //   clientId: process.env.GITHUB_CLIENT_ID,
@@ -20,8 +21,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     // }),
 
     Google({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientId: process.env.GOOGLE_ID,
+      clientSecret: process.env.GOOGLE_SECRET,
     }),
 
     Credentials({

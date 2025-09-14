@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "cldstart": "node cldindex.js"
+    "cldstart": "node cldindex.js",
+    "cld2start": "node cldindex2.js"
   },
   "packageManager": "npm@10.9.0",
   "overrides": {

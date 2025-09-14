@@ -23,12 +23,16 @@ const Blog = () => {
     <Tabs defaultValue={page?.toString()} className="flex flex-col lg:flex-row gap-[60px] mt-5">
       <TabsList className="flex flex-row lg:flex-col w-full max-w-sm lg:max-w-[280px] xl:max-w-[340px] max-h-[240px] mx-auto xl:mx-0 gap-2 lg:gap-6 ">
         <TabsTrigger value="praisevideo" className='rounded-full flex-1 max-h-12'>Praise</TabsTrigger>
+        <TabsTrigger value="worshipvideo" className='rounded-full flex-1 max-h-12'>Worship</TabsTrigger>
         <TabsTrigger value="post" className='rounded-full flex-1 max-h-12'>Posts</TabsTrigger>
       </TabsList>
 
       <ScrollArea className="lg:h-[80vh] w-full">
         <TabsContent value="praisevideo" className="w-full">
           <Posts page="praisevideo" media={page === 'praisevideo' ? media?.toString() : ''} />
+        </TabsContent>
+        <TabsContent value="worshipvideo" className="w-full">
+          <Posts page="worshipvideo" media={page === 'worshipvideo' ? media?.toString() : ''} />
         </TabsContent>
         <TabsContent value="post" className="w-full">
           <Posts page="post" media={page === 'post' ? media?.toString() : ''} />

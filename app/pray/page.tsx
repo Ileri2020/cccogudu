@@ -73,6 +73,10 @@ export default function Pray() {
         if (user.id === adminId) {
           setIsPublisher(true);
         }
+        if (!isPublisher) {
+          roomInstance.localParticipant.setCameraEnabled(false)
+          roomInstance.localParticipant.setMicrophoneEnabled(false)
+        }
       }
       setToken(`${data.token}`)
       console.log('room instance generated token variable set');

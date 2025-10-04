@@ -10,6 +10,8 @@ import {
   RoomAudioRenderer,
   useTracks,
   RoomContext,
+  FocusLayout,
+  VideoConference
 } from '@livekit/components-react';
 import { Room, Track } from 'livekit-client';
 import '@livekit/components-styles';
@@ -73,10 +75,10 @@ export default function Pray() {
         if (user.id === adminId) {
           setIsPublisher(true);
         }
-        if (!isPublisher) {
-          roomInstance.localParticipant.setCameraEnabled(false)
-          roomInstance.localParticipant.setMicrophoneEnabled(false)
-        }
+        // if (!isPublisher) {
+        //   roomInstance.localParticipant.setCameraEnabled(false)
+        //   roomInstance.localParticipant.setMicrophoneEnabled(false)
+        // }
       }
       setToken(`${data.token}`)
       console.log('room instance generated token variable set');
@@ -84,6 +86,22 @@ export default function Pray() {
       console.log('error generating token', e);
     }
   }
+
+  // const joinMeeting =async (room : String, name : String)=>{
+  //   try {
+  //     const resp = await fetch(/api/token?room=${room}&username=${name});
+  //     const data = await resp.json();
+  //     console.log('data', ${data.token})
+  //     if (data.token) {
+  //       await roomInstance.connect(process.env.NEXT_PUBLIC_LIVEKIT_URL, ${data.token});
+  //       setIsConnected(true);
+  //     }
+  //     setToken(${data.token})
+  //     console.log('room instance generated token variable set');
+  //   } catch (e) {
+  //     console.log('error generating token', e);
+  //   }
+  // }
 
 
   const handleDelete = async (id: string) => {
@@ -160,7 +178,7 @@ export default function Pray() {
             {/* The RoomAudioRenderer takes care of room-wide audio for you. */}
             <RoomAudioRenderer />
             {/* Controls for the user to start/stop audio, video, and screen share tracks */}
-            <ControlBar />
+            {/* <ControlBar /> */}
           </div>
         </div>
       )}
@@ -188,11 +206,12 @@ function MyVideoConference() {
     //   as a template to render all passed in tracks. */}
     //   <div><ParticipantTile /></div>
     // </GridLayout>
-    <div tracks={tracks} style={{ height: 'calc(100vh - var(--lk-control-bar-height))' }}>
-      {/* The GridLayout accepts zero or one child. The child is used
-      as a template to render all passed in tracks. */}
-      <div><ParticipantTile /></div>
-    </div>
+    // <GridLayout tracks={tracks} style={{ height: 'calc(100vh - var(--lk-control-bar-height))' }}>
+    //   {/* The GridLayout accepts zero or one child. The child is used
+    //   as a template to render all passed in tracks. */}
+    //   <div><ParticipantTile /></div>
+    // </GridLayout>
+    <VideoConference />
   );
 }
 

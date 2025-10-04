@@ -32,6 +32,7 @@ import axios from 'axios'
 import { useAppContext } from '@/hooks/useAppContext'
 import { FcGoogle } from 'react-icons/fc'
 import { signIn } from '@/auth'
+import { googleSignIn } from './googlesignin'
 
 
 
@@ -73,6 +74,8 @@ const Login = () => {
     setEditId(null);
   };
 
+  
+
   return (
     <div className='inline'>
       <Drawer>
@@ -112,21 +115,19 @@ const Login = () => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction>Continue</AlertDialogAction>
           </AlertDialogFooter> */}
-          <div className="m-2">
+          <div className="w-full my-2">
             <form
-              action={async () => {
-                await signIn("google");
-              }}
+              action={googleSignIn}
             >
-              <button
-                className=" relative group/btn flex space-x-2 items-center justify-start px-4 w-full text-black rounded-md h-10 font-medium shadow-input bg-gray-50 dark:bg-zinc-900 dark:shadow-[0px_0px_1px_1px_var(--neutral-800)]"
+              <Button
+                className=" relative w-full max-w-[300px] mx-auto flex /space-x-2 items-center justify-center text-black rounded-md h-10 font-medium shadow-input bg-gray-50 dark:bg-zinc-900 dark:shadow-[0px_0px_1px_1px_var(--neutral-800)]"
                 type="submit"
               >
                 <FcGoogle className="h-4 w-4 text-neutral-800 dark:text-neutral-300" />
                 <span className="text-neutral-700 dark:text-neutral-300 text-sm">
                   Google
                 </span>
-              </button>
+              </Button>
             </form>
           </div>
         </DrawerContent>
@@ -134,6 +135,8 @@ const Login = () => {
     </div>
   )
 }
+
+
 
 
 

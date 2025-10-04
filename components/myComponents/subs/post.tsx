@@ -22,7 +22,7 @@ const Post = ({post})=>{
   const [reload, setReload] = useState(false);
   const [isModal, setIsModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [postUrl, setPostUrl] = useState(`${origin}/blog/${post.id}?page=${post.for}`);
+  const [postUrl, setPostUrl] = useState(`${process.env.NEXT_PUBLIC_ORIGIN_URL}/blog/${post.id}?page=${post.for}`);
 
 
 

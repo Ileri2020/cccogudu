@@ -47,9 +47,9 @@ const Posts = ({ page, media='' }) => {
         // If media is not empty, prioritize the post with id matching media
         if (media !== '') {
           const mediaPostIndex = filteredPosts.findIndex(post => post.id === media);
-          if (mediaPostIndex !== -1) {
+          if (mediaPostIndex > 0) {
             const mediaPost = filteredPosts.splice(mediaPostIndex, 1)[0];
-            filteredPosts = [mediaPost, ...filteredPosts]; // Place media post at top
+            filteredPosts.unshift(mediaPost); 
           }
         }
 

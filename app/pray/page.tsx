@@ -35,6 +35,7 @@ export default function Pray() {
   const [name, setName] = useState('');
   const [meetings, setMeetings] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
+  const [isPublisher, setIsPublisher] = useState(false);
 
   const fetchMeetings = async () => {
     try {
@@ -58,12 +59,10 @@ export default function Pray() {
       console.error(error);
     }
   };
-
-
   
 
 
-  const joinMeeting =async (room : String, name : String)=>{
+  const joinMeeting = async (room: String, name: String, adminId: String) => {
     try {
       const resp = await fetch(`/api/token?room=${room}&username=${name}`);
       const data = await resp.json();
@@ -71,6 +70,9 @@ export default function Pray() {
       if (data.token) {
         await roomInstance.connect(process.env.NEXT_PUBLIC_LIVEKIT_URL, `${data.token}`);
         setIsConnected(true);
+        if (user.id === adminId) {
+          setIsPublisher(true);
+        }
       }
       setToken(`${data.token}`)
       console.log('room instance generated token variable set');
@@ -125,14 +127,14 @@ export default function Pray() {
                     </div>
                     <div className='flex flex-row justify-between w-full'>
                       <div className='text-xs text-foreground/50'>{meeting.description}</div>
-                      <Button
-                        disabled={isFutureMeeting}
-                        className={isFutureMeeting ? 'opacity-50 cursor-not-allowed' : ''}
+                      <Button 
+                        disabled={isFutureMeeting} 
+                        className={isFutureMeeting ? 'opacity-50 cursor-not-allowed' : ''} 
                         onClick={() => {
                           if (!isFutureMeeting) {
-                            joinMeeting(meeting.roomName, user.username);
+                            joinMeeting(meeting.roomName, user.username, meeting.adminId);
                           }
-                        }}
+                        }} 
                       >
                         {isFutureMeeting ? 'Pending Meeting' : 'Join Meeting'}
                       </Button>

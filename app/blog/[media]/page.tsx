@@ -16,6 +16,7 @@ const Blog = () => {
   const searchParams = useSearchParams();
   const page = searchParams.get('page');
   const media = searchParams.get('media');
+  alert(media?.toString())
 
   let plan = "a tab for community account posts, projects done, testimonies, upcoming event posts date/calendar";
 

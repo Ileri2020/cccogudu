@@ -55,7 +55,7 @@ const Posts = ({ page, media='' }) => {
 
         setAllPosts(filteredPosts);
         if (media !== '') {
-          alert(media)
+          alert(`media is ${media}`)
         }
         setDisplayedPosts(filteredPosts.slice(0, postsPerChunk));
         setCurrentChunk(0);
@@ -78,6 +78,7 @@ const Posts = ({ page, media='' }) => {
 
   useEffect(() => {
     fetchAllPosts();
+    alert(`media is ${media}`)
   }, []);
 
 

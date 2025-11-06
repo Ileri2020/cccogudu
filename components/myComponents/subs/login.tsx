@@ -31,13 +31,14 @@ import axios from 'axios'
 // import { getSession } from '@/server/action/getSession'
 import { useAppContext } from '@/hooks/useAppContext'
 import { FcGoogle } from 'react-icons/fc'
-import { signIn } from '@/auth'
 import { googleSignIn } from './googlesignin'
+import { usersession } from '@/session'
+import { useSession } from "next-auth/react";
 
 
 
 const Login = () => {
-  const { selectedVideo, setSelectedVideo, useMock, setUser } = useAppContext();
+  const {setUser } = useAppContext();
   const [users, setUsers] = useState([]);
   const [formData, setFormData] = useState({
     email: '',
@@ -45,17 +46,33 @@ const Login = () => {
   });
   const [editId, setEditId] = useState(null);
 
-  // useEffect(() => {
-  //   fetchUsers();
-  // }, []);
+  const { data: session, status, update } = useSession();
 
+      // if (status === "loading") {
+      //   return <p>Loading session...</p>;
+      // }
+
+      // if (status === "authenticated") {
+      //   return <p>Welcome, {session.user.name}!</p>;
+      // }
+
+
+  // When the session becomes authenticated, sync the user data
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      setUser({
+        username: session.user.name ?? "visitor",
+        id: session.user.id ?? "nil",
+        email: session.user.email ?? "nil",
+        avatarUrl: session.user.image? session.user.image.replace(/=s\d+(-c)?/, "=s250-c"): "",
+        role: (session.user as any).role ?? "user",   // adjust if you have a custom role field
+        department: (session.user as any).department ?? "nil",
+        contact: (session.user as any).contact ?? "xxxx",
+      });
+    }
+  }, [status, session, setUser]);
   const form = useRef<HTMLFormElement>(null);
-
-  const fetchUser = async () => {
-    const res = await axios.get('/api/dbhandler?model=users');
-    console.log(formData)
-    setUsers(res.data);
-  };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();

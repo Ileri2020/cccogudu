@@ -18,8 +18,6 @@ const Blog = () => {
   const media = searchParams.get('media');
   alert(`media is ${media} page is ${page}`)
 
-  let plan = "a tab for community account posts, projects done, testimonies, upcoming event posts date/calendar";
-
   return (
     <Tabs defaultValue={page?.toString()} className="flex flex-col lg:flex-row gap-[60px] mt-5">
       <TabsList className="flex flex-row lg:flex-col w-full max-w-sm lg:max-w-[280px] xl:max-w-[340px] max-h-[240px] mx-auto xl:mx-0 gap-2 lg:gap-6 ">

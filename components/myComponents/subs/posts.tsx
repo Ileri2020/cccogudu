@@ -1,139 +1,174 @@
+// @ts-nocheck
 "use client";
-import React, { useEffect, useRef, useState } from 'react';
-import axios from 'axios';
-import { BiLike, BiSolidLike, BiComment, BiDownload } from 'react-icons/bi'
-import { Button } from '@/components/ui/button'
-import { useAppContext } from '@/hooks/useAppContext'
-// import Modal from '@/components/modal'
-import TextArea from '@/components/textArea'
-import { ChevronsUpDown } from "lucide-react";
-import { commentsObject } from "@/mock/comments";
-import { BASE_URL, headers } from "@/utils/constants";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import CommentCard from '@/components/commentCard';
-import { PrismaClient } from '@prisma/client';
-import deletemanypost, { createManyPosts } from './postaction';
-import { Skeleton } from '@/components/ui/skeleton';
-import Post from './post';
 
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import axios from "axios";
+import Post from "./post";
 
-
-
-
-
-const Posts = ({ page, media='' }) => {
+const Posts = ({ page, media = "" }) => {
   const [allPosts, setAllPosts] = useState([]);
-  const [sortOrder, setSortOrder] = useState('random');
+  const [displayedPosts, setDisplayedPosts] = useState([]);
+  const [sortOrder, setSortOrder] = useState("random");
   const [postTypes, setPostTypes] = useState({
     video: true,
     audio: true,
     image: true,
   });
-  const [displayedPosts, setDisplayedPosts] = useState([]);
-  const [currentChunk, setCurrentChunk] = useState(0);
+
   const postsPerChunk = 2;
+  const currentChunkRef = useRef(0);
   const loadMoreRef = useRef(null);
   const observerRef = useRef(null);
 
-  const fetchAllPosts = () => {
-    axios.get('/api/dbhandler', {
-      params: { model: 'posts' },
-    })
-      .then(response => {
-        const posts = response.data;
-        let filteredPosts = posts.filter(post => post.for === page && postTypes[post.type]);
-        filteredPosts = sortPosts(filteredPosts, sortOrder);
+  /** ----------------------------------------------------
+   *  SORT POSTS (Stable, respects media priority)
+   -----------------------------------------------------*/
+  const sortPosts = (posts, order, mediaId) => {
+    // keep stable when media is present and order= random
+    if (mediaId && order === "random") return posts;
 
-        // If media is not empty, prioritize the post with id matching media
-        if (media !== '') {
-          const mediaPostIndex = filteredPosts.findIndex(post => post.id === media);
-          if (mediaPostIndex > 0) {
-            const mediaPost = filteredPosts.splice(mediaPostIndex, 1)[0];
-            filteredPosts.unshift(mediaPost); 
-          }
-        }
-
-        setAllPosts(filteredPosts);
-        if (media !== '') {
-          alert(`media is ${media}`)
-        }
-        setDisplayedPosts(filteredPosts.slice(0, postsPerChunk));
-        setCurrentChunk(0);
-      })
-      .catch(error => console.error(error));
-  };
-  
-
-  const sortPosts = (posts, order) => {
-    if (order === 'asc') {
-      return posts.sort((a, b) => new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime());
-    } else if (order === 'desc') {
-      return posts.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-    } else if (order === 'random') {
-      return [...posts].sort(() => Math.random() - 0.5); // Fisher-Yates shuffle alternative
+    if (order === "asc") {
+      return [...posts].sort(
+        (a, b) => new Date(a.updatedAt) - new Date(b.updatedAt)
+      );
     }
-    return posts;
+
+    if (order === "desc") {
+      return [...posts].sort(
+        (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
+      );
+    }
+
+    // Normal random shuffle
+    return [...posts].sort(() => Math.random() - 0.5);
   };
 
+  /** ----------------------------------------------------
+   *  ENSURE MEDIA POST IS ALWAYS FIRST
+   -----------------------------------------------------*/
+  const prioritizeMedia = (posts, mediaId) => {
+    if (!mediaId) return posts;
+    const normalized = String(mediaId);
 
-  useEffect(() => {
-    fetchAllPosts();
-    alert(`media is ${media}`)
-  }, []);
+    const index = posts.findIndex((p) => String(p.id) === normalized);
+    if (index === -1) return posts;
 
+    const mediaPost = posts[index];
+    const others = posts.filter((p) => String(p.id) !== normalized);
 
-  useEffect(() => {
-    if ('IntersectionObserver' in window && loadMoreRef.current) {
-      observerRef.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && displayedPosts.length < allPosts.length) {
-          handleLoadMore();
-        }
-      }, {
-        rootMargin: '100px', // Load when 100px from viewport
+    return [mediaPost, ...others];
+  };
+
+  /** ----------------------------------------------------
+   *  FETCH ALL POSTS (only runs when relevant)
+   -----------------------------------------------------*/
+  const fetchAllPosts = useCallback(async () => {
+    try {
+      const response = await axios.get("/api/dbhandler", {
+        params: { model: "posts" },
       });
-      observerRef.current.observe(loadMoreRef.current);
-      return () => observerRef.current.disconnect();
+
+      let posts = response.data;
+
+      // Filter by page and content type
+      posts = posts.filter(
+        (post) => post.for === page && postTypes[post.type]
+      );
+
+      // Sort
+      posts = sortPosts(posts, sortOrder, media);
+
+      // Prioritize selected media
+      posts = prioritizeMedia(posts, media);
+
+      setAllPosts(posts);
+
+      // Reset displayed posts to first chunk
+      currentChunkRef.current = 0;
+      setDisplayedPosts(posts.slice(0, postsPerChunk));
+    } catch (error) {
+      console.error(error);
     }
-  }, [displayedPosts, allPosts]);
+  }, [page, sortOrder, postTypes, media]);
 
-  const handleSortChange = (e) => setSortOrder(e.target.value);
-  const handlePostTypeChange = (e) => {
-    setPostTypes({ ...postTypes, [e.target.name]: e.target.checked });
-  };
-
-  const handleLoadMore = () => {
-    const nextChunk = currentChunk + 1;
+  /** ----------------------------------------------------
+   *  LOAD MORE POSTS
+   -----------------------------------------------------*/
+  const loadMore = () => {
+    const nextChunk = currentChunkRef.current + 1;
     const start = nextChunk * postsPerChunk;
     const end = start + postsPerChunk;
-    const newDisplayedPosts = [...displayedPosts, ...allPosts.slice(start, end)];
-    setDisplayedPosts(newDisplayedPosts);
-    setCurrentChunk(nextChunk);
+
+    const nextPosts = allPosts.slice(start, end);
+
+    if (nextPosts.length === 0) return;
+
+    currentChunkRef.current = nextChunk;
+    setDisplayedPosts((prev) => [...prev, ...nextPosts]);
+  };
+
+  /** ----------------------------------------------------
+   *  OBSERVER FOR INFINITE SCROLL
+   -----------------------------------------------------*/
+  useEffect(() => {
+    if (!("IntersectionObserver" in window)) return;
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) loadMore();
+      },
+      { rootMargin: "120px" }
+    );
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => observerRef.current?.disconnect();
+  }, [allPosts]);
+
+  /** ----------------------------------------------------
+   *  FETCH POSTS WHEN SETTINGS CHANGE
+   -----------------------------------------------------*/
+  useEffect(() => {
+    fetchAllPosts();
+  }, [fetchAllPosts]);
+
+  /** ----------------------------------------------------
+   *  HANDLERS
+   -----------------------------------------------------*/
+  const handleSortChange = (e) => setSortOrder(e.target.value);
+  const handleTypeChange = (e) => {
+    setPostTypes((prev) => ({ ...prev, [e.target.name]: e.target.checked }));
   };
 
   if (!allPosts.length) return <div>Loading...</div>;
 
+  /** ----------------------------------------------------
+   *  UI
+   -----------------------------------------------------*/
   return (
-    <div className='flex flex-col w-fit mx-auto'>
+    <div className="flex flex-col w-fit mx-auto">
       {/* Controls */}
-      <div className="flex flex-row justify-between">
+      <div className="flex flex-row justify-between mb-4">
         <select value={sortOrder} onChange={handleSortChange}>
           <option value="random">Random</option>
           <option value="asc">Asc</option>
           <option value="desc">Desc</option>
         </select>
-        <div>
-          <label>
-            <input type="checkbox" name="video" checked={postTypes.video} onChange={handlePostTypeChange} />
-            Video
-          </label>
-          <label className="ml-4">
-            <input type="checkbox" name="audio" checked={postTypes.audio} onChange={handlePostTypeChange} />
-            Audio
-          </label>
-          <label className="ml-4">
-            <input type="checkbox" name="image" checked={postTypes.image} onChange={handlePostTypeChange} />
-            Image
-          </label>
+
+        <div className="flex gap-4 ml-4">
+          {["video", "audio", "image"].map((type) => (
+            <label key={type}>
+              <input
+                type="checkbox"
+                name={type}
+                checked={postTypes[type]}
+                onChange={handleTypeChange}
+              />
+              {type.charAt(0).toUpperCase() + type.slice(1)}
+            </label>
+          ))}
         </div>
       </div>
 
@@ -148,98 +183,14 @@ const Posts = ({ page, media='' }) => {
         <div>No {page}s available.</div>
       )}
 
-      {/* Load Trigger */}
+      {/* Infinite scroll trigger */}
       {displayedPosts.length < allPosts.length && (
-        <div ref={loadMoreRef}>
-          {'IntersectionObserver' in window ? (
-            <div className="invisible">Loading...</div> // Trigger for observer
-          ) : (
-            <button onClick={handleLoadMore}>Load More</button> // Fallback button
-          )}
+        <div ref={loadMoreRef} className="h-10 invisible">
+          Loading...
         </div>
       )}
     </div>
   );
 };
 
-
 export default Posts;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-const Comments = ( props : {videoId : string}) => {
-  const { user } = useAppContext();
-  const [compComments, setCompComments] = useState([]); //<CommentType[]>
-
-  const getComments = async (videoId: string) => {
-    try {
-      const res = await axios.get(`/api/dbhandler?model=comments&id=${videoId}`);
-      //console.log(res.data)
-      setCompComments(res.data)
-     return;
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    getComments(props.videoId)
-  }, []);
-  
-
-  if (!props.videoId) return;
-  const [isOpen, setIsOpen] = useState(false)
-
-  return (
-    <Collapsible
-      open={isOpen}
-      onOpenChange={setIsOpen}
-      className="w-full space-y-2 px-2"
-    >
-      <div className="flex items-center justify-between space-x-4 px-4">
-        <CollapsibleTrigger asChild>
-          <div className="w-full rounded-md border px-2 py-1 /hover:bg-secondary/90">
-            {compComments?.length<1 ? <div>... no comment</div> : <div>
-              <CommentCard 
-                username={compComments?.at(0)?.username} 
-                createdAt={compComments?.at(0)?.createdAt} 
-                comment={compComments?.at(0)?.comment}
-                id={compComments?.at(0)?.id}
-              />
-              <div className="text-sm text-foreground/50">...more</div>
-            </div>}
-            {/* <div><ChevronsUpDown className="h-4 w-4" /></div> */}
-          </div>
-        </CollapsibleTrigger>
-      </div>
-
-      <CollapsibleContent className="space-y-2">
-        {/* <Button onClick={showModal}>Add comment</Button> */}
-
-        {compComments?.map((comment) => (
-          <div key={comment.id}>
-            <CommentCard 
-              username={comment.username} 
-              createdAt={comment.createdAt} 
-              comment={comment.comment} 
-              id={comment.id}
-            />
-          </div>
-        ))}
-      </CollapsibleContent>
-    </Collapsible>
-  );
-};
-

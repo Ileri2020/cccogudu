@@ -10,7 +10,9 @@ const Blog = () => {
   const params = useParams();
   const searchParams = useSearchParams();
 
-  const media = params.media;  // <-- dynamic route
+  // FIX: ensure it is always a string
+  const media = Array.isArray(params.media) ? params.media[0] : params.media;
+
   const page = searchParams.get("page");
 
   return (

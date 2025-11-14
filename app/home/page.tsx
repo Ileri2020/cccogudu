@@ -32,7 +32,7 @@ const Home = () => {
       className="w-[100vw] min-h-[100vh] overflow-clip flex flex-col"
     >
       <div className="flex-1 flex flex-col md:flex-row w-full md:w-[85%] min-h-[80vh] overflow-clip mx-auto relative max-w-6xl">
-        <div className="flex w-full md:w-[540px] flex-col items-center mt-5 md:mt-28 text-centers md:translate-x-40 ">
+        <div className="flex w-full md:max-w-xl /bg-red-500 flex-col items-center mt-5 md:mt-28 text-centers md:translate-x-10 z-10">
           <div className="/text-5xl font-extrabold /text-transparent /text-outline text-center md:text-start">
             <div className="text-5xl text-accent">CCC OGUDU</div>
             <div className="text-4xl text-primary/80">EXPRESSWAY CATHEDRAL</div>

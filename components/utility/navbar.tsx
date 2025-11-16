@@ -13,7 +13,7 @@ import Image from "next/image";
 
 const Navbar = () : JSX.Element => {
   return (
-    <div className="w-[100vw] overflow-clip flex flex-col m-0 p-0 relative shadow-md shadow-accent/40">
+    <div className="sticky top-0 z-30 w-[100vw] overflow-clip flex flex-col m-0 p-0 shadow-md shadow-accent/40">
       <header className="w-[100%] py-4 bg-background sticky top-0 z-10">
         <div className="container mx-auto flex justify-between items-center h-[50px] overflow-clip">
             <div className="lg:hidden">

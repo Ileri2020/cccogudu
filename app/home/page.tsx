@@ -34,7 +34,7 @@ const Home = () => {
       <div className="flex-1 flex flex-col md:flex-row w-full md:w-[85%] min-h-[80vh] overflow-clip mx-auto relative max-w-6xl">
         <div className="flex w-full md:max-w-xl /bg-red-500 flex-col items-center mt-5 md:mt-28 text-centers md:translate-x-10 z-10">
           <div className="/text-5xl font-extrabold /text-transparent /text-outline text-center md:text-start">
-            <div className="text-5xl text-accent">CCC OGUDU</div>
+            <div className="text-5xl text-accent text-center w-full">CCC OGUDU</div>
             <div className="text-4xl text-primary/80">EXPRESSWAY CATHEDRAL</div>
           </div>
           <div>
@@ -75,7 +75,7 @@ const Home = () => {
 <div className="flex flex-col">
   <div className="mt-2 text-4xl font-semibold text-center w-full">Upcoming Events</div>
   <div className="w-28 mx-auto my-10"><Separator /></div>
-<ScrollArea className="relative h-[110vh] /lg:h-[80vh] w-full mx-auto flex justify-center items-center max-w-md overflow-clip" >
+<ScrollArea className="relative max-h-[110vh] /lg:h-[80vh] w-full mx-auto flex justify-center items-center max-w-md overflow-clip" >
         <Posts page={"event"} />
       </ScrollArea>
       </div>

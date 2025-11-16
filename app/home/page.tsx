@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client"
 import { motion } from "framer-motion"
 import { Button } from '@/components/ui/button';
@@ -73,10 +74,9 @@ const Home = () => {
     */}
 
 <div className="flex flex-col">
-  <div className="mt-2 text-4xl font-semibold text-center w-full">Upcoming Events</div>
-  <div className="w-28 mx-auto my-10"><Separator /></div>
+  
 <ScrollArea className="relative max-h-[110vh] /lg:h-[80vh] w-full mx-auto flex justify-center items-center max-w-md overflow-clip" >
-        <Posts page={"event"} />
+        <UpcomingEvents page={"event"} />
       </ScrollArea>
       </div>
 
@@ -107,3 +107,251 @@ const Home = () => {
 }
 
 export default Home
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import axios from "axios";
+
+// ============================================================================
+//  UPCOMING EVENTS  (Posts + Post merged, simplified for IMAGES ONLY)
+// ============================================================================
+
+const UpcomingEvents = ({ page, media = "" }) => {
+  const [allEvents, setAllEvents] = useState([]);
+  const [displayedEvents, setDisplayedEvents] = useState([]);
+  const [sortOrder, setSortOrder] = useState("random");
+  const [loading, setLoading] = useState(true); // 🔥 added
+
+  const eventsPerChunk = 2;
+  const currentChunkRef = useRef(0);
+  const loadMoreRef = useRef(null);
+  const observerRef = useRef(null);
+
+  // ==========================================================================
+  // SORT EVENTS
+  // ==========================================================================
+  const sortEvents = (events, order, mediaId) => {
+    if (mediaId && order === "random") return events;
+
+    if (order === "asc") {
+      return [...events].sort(
+        (a, b) => new Date(a.updatedAt) - new Date(b.updatedAt)
+      );
+    }
+
+    if (order === "desc") {
+      return [...events].sort(
+        (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
+      );
+    }
+
+    return [...events].sort(() => Math.random() - 0.5); // random
+  };
+
+  // ==========================================================================
+  // PRIORITIZE MEDIA IMAGE FIRST
+  // ==========================================================================
+  const prioritizeMedia = (events, mediaId) => {
+    if (!mediaId) return events;
+
+    const index = events.findIndex((e) => String(e.id) === String(mediaId));
+    if (index === -1) return events;
+
+    const item = events[index];
+    const others = events.filter((e) => String(e.id) !== String(mediaId));
+
+    return [item, ...others];
+  };
+
+  // ==========================================================================
+  // FETCH EVENTS
+  // ==========================================================================
+  const fetchEvents = useCallback(async () => {
+    if (page !== "event") return;
+
+    try {
+      setLoading(true); // 🔥 added
+
+      const response = await axios.get("/api/dbhandler", {
+        params: { model: "posts" },
+      });
+
+      let events = response.data;
+
+      events = events.filter(
+        (event) => event.for === "event" && event.type === "image"
+      );
+
+      events = sortEvents(events, sortOrder, media);
+      events = prioritizeMedia(events, media);
+
+      setAllEvents(events);
+
+      currentChunkRef.current = 0;
+      setDisplayedEvents(events.slice(0, eventsPerChunk));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false); // 🔥 added
+    }
+  }, [page, sortOrder, media]);
+
+  // ==========================================================================
+  // INFINITE SCROLL LOAD MORE
+  // ==========================================================================
+  const loadMore = () => {
+    const nextChunk = currentChunkRef.current + 1;
+    const start = nextChunk * eventsPerChunk;
+    const end = start + eventsPerChunk;
+
+    const nextEvents = allEvents.slice(start, end);
+    if (nextEvents.length === 0) return;
+
+    currentChunkRef.current = nextChunk;
+    setDisplayedEvents((prev) => [...prev, ...nextEvents]);
+  };
+
+  // ==========================================================================
+  // OBSERVER
+  // ==========================================================================
+  useEffect(() => {
+    if (!("IntersectionObserver" in window)) return;
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) loadMore();
+      },
+      { rootMargin: "150px" }
+    );
+
+    if (loadMoreRef.current) observerRef.current.observe(loadMoreRef.current);
+
+    return () => observerRef.current?.disconnect();
+  }, [allEvents]);
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
+
+  // ==========================================================================
+  // FORMAT DATE
+  // ==========================================================================
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now - date;
+
+    const min = Math.floor(diff / 60000);
+    const hrs = Math.floor(min / 60);
+    const days = Math.floor(hrs / 24);
+
+    if (days > 0) return `last ${days} d`;
+    if (hrs > 0) return `last ${hrs} h`;
+    if (min > 0) return `last ${min} m`;
+    return "just now";
+  }
+
+  // ==========================================================================
+  // CONDITIONAL RENDERING FOR NO EVENTS
+  // ==========================================================================
+  if (loading) return <div>Loading events...</div>;
+
+  // 🔥 If loaded AND no events: render nothing
+  if (!loading && allEvents.length === 0) return null;
+
+  // ==========================================================================
+  // UI
+  // ==========================================================================
+  return (
+    <div className="flex flex-col w-fit mx-auto">
+      <div className="mt-2 text-4xl font-semibold text-center w-full">Upcoming Events</div>
+      <div className="w-28 mx-auto my-10"><Separator /></div>
+      {/* Sort dropdown */}
+      <div className="flex flex-row mb-4">
+        <select
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value)}
+          className="p-2 border rounded"
+        >
+          <option value="random">Random</option>
+          <option value="asc">Asc</option>
+          <option value="desc">Desc</option>
+        </select>
+      </div>
+
+      {/* Render Events */}
+      {displayedEvents.map((event) => (
+        <div
+          key={event.id}
+          className="mt-10 flex flex-col rounded-sm w-[100vw] max-w-sm overflow-hidden bg-secondary"
+        >
+          {/* HEADER */}
+          <div className="w-full flex flex-row">
+            <img
+              src={
+                event?.user?.avatarUrl ??
+                "https://res.cloudinary.com/dc5khnuiu/image/upload/v1752627019/uxokaq0djttd7gsslwj9.png"
+              }
+              className="w-10 h-10 rounded-full m-1"
+            />
+            <div className="flex flex-row w-full">
+              <div className="flex-1 text-lg font-semibold px-3">
+                {event.user?.username}
+              </div>
+              <div className="text-xs opacity-70 pr-3">
+                {formatDate(event.updatedAt)}
+              </div>
+            </div>
+          </div>
+
+          {/* IMAGE */}
+          <img src={event.url} className="w-full" />
+
+          {/* BODY */}
+          <div className="p-3">
+            {event.title && (
+              <div className="font-semibold text-lg mb-1">{event.title}</div>
+            )}
+            <div>{event.post}</div>
+          </div>
+        </div>
+      ))}
+
+      {/* Infinite scroll trigger */}
+      {displayedEvents.length < allEvents.length && (
+        <div ref={loadMoreRef} className="h-10 invisible">
+          Loading...
+        </div>
+      )}
+    </div>
+  );
+};
+

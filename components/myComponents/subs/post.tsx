@@ -1,5 +1,5 @@
-// @ts-nocheck
 "use client";
+
 import React, { useEffect, useRef, useState } from "react";
 import { BiLike, BiSolidLike, BiComment } from "react-icons/bi";
 import { Button } from "@/components/ui/button";
@@ -13,23 +13,89 @@ import {
   DrawerClose
 } from "@/components/ui/drawer";
 
-import Comments from "@/components/comments";
 import TextArea from "@/components/textArea";
 import axios from "axios";
 import { useAppContext } from "@/hooks/useAppContext";
 import { Skeleton } from "@/components/ui/skeleton";
 
+
+// -----------------------------------------------------------------------------
+// EMBEDDED COMMENTS COMPONENT
+// -----------------------------------------------------------------------------
+
+const Comments = ({
+  videoId,
+  reload
+}: {
+  videoId: string;
+  reload: boolean;
+}) => {
+  const { comments, setComments } = useAppContext();
+  const [loading, setLoading] = useState(true);
+  const [compComments, setCompComments] = useState<any[]>([]);
+
+  const getComments = async (id: string) => {
+    try {
+      const res = await axios.get(`/api/dbhandler?model=comments&id=${id}`);
+      return res.data;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    if (!videoId) return;
+
+    getComments(videoId)
+      .then((res) => {
+        setComments(res); 
+        setCompComments(res.filter((c: any) => c.contentId === videoId));
+        setLoading(false);
+      })
+      .catch((err) => console.log(err));
+  }, [videoId, reload]);
+
+  if (!videoId) return null;
+
+  return (
+    <div className="space-y-3">
+      {loading && <div className="text-sm opacity-70">Loading comments...</div>}
+
+      {!loading && compComments.length < 1 && (
+        <div className="text-sm opacity-70">No comments yet...</div>
+      )}
+
+      {compComments.map((comment) => (
+        <div
+          key={comment.id}
+          className="border rounded-md p-2 bg-secondary"
+        >
+          <div className="font-semibold">@{comment.username}</div>
+          <div>{comment.comment}</div>
+          <div className="text-xs opacity-60">{comment.createdAt}</div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+
+// -----------------------------------------------------------------------------
+// MAIN POST COMPONENT
+// -----------------------------------------------------------------------------
+
 const Post = ({ post }) => {
   const { user } = useAppContext();
+
   const [liked, setLiked] = useState(false);
   const [likeId, setLikeId] = useState(null);
   const [likeCount, setLikeCount] = useState(0);
   const [deleted, setDeleted] = useState(false);
+
   const [comment, setComment] = useState("");
   const [reload, setReload] = useState(false);
 
   const [openDrawer, setOpenDrawer] = useState(false);
-
   const [isLoading, setIsLoading] = useState(true);
 
   const mediaRef = useRef(null);
@@ -38,13 +104,18 @@ const Post = ({ post }) => {
 
   const postUrl = `${process.env.NEXT_PUBLIC_ORIGIN_URL}/blog/${post.id}?page=${post.for}`;
 
+  // ---------------------------------------------------------------------------
+  // LIKE FETCH
+  // ---------------------------------------------------------------------------
+
   const fetchLikeCount = async () => {
     try {
       const response = await axios.get(`/api/dbhandler?model=likes&id=${post.id}`);
+
       if (response.status === 200) {
         setLikeCount(response.data.length);
 
-        const userLike = response.data.find(like => like.userId === user.id);
+        const userLike = response.data.find((like) => like.userId === user.id);
         if (userLike) {
           setLikeId(userLike.id);
           setLiked(true);
@@ -58,15 +129,19 @@ const Post = ({ post }) => {
     }
   };
 
+  // ---------------------------------------------------------------------------
+  // EFFECTS
+  // ---------------------------------------------------------------------------
+
   useEffect(() => {
     fetchLikeCount();
 
     if (mediaRef.current && "IntersectionObserver" in window) {
       observerRef.current = new IntersectionObserver(
-        entries => {
-          entries.forEach(entry => {
+        (entries) => {
+          entries.forEach((entry) => {
             if (entry.isIntersecting && !isPlaying.current) {
-              mediaRef.current.play().catch(e => console.log("Error playing:", e));
+              mediaRef.current.play().catch(() => {});
               isPlaying.current = true;
             } else if (!entry.isIntersecting && isPlaying.current) {
               mediaRef.current.pause();
@@ -82,8 +157,12 @@ const Post = ({ post }) => {
     }
   }, []);
 
+  // ---------------------------------------------------------------------------
+  // LIKE ACTION
+  // ---------------------------------------------------------------------------
+
   const handleLike = async () => {
-    if (user.username === "visitor") {
+    if (!user || user.username === "visitor") {
       alert("Login to react");
       return;
     }
@@ -102,13 +181,15 @@ const Post = ({ post }) => {
         setLiked(false);
         setLikeId(null);
       }
-    } catch (error) {
-      console.error(error);
-    }
+    } catch (error) {}
   };
 
+  // ---------------------------------------------------------------------------
+  // COMMENT SAVE
+  // ---------------------------------------------------------------------------
+
   const saveComment = async () => {
-    if (user.username === "visitor") {
+    if (!user || user.username === "visitor") {
       alert("Login to comment");
       return;
     }
@@ -125,20 +206,22 @@ const Post = ({ post }) => {
         setComment("");
         setReload(!reload);
       }
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (error) {}
   };
+
+  // ---------------------------------------------------------------------------
+  // DELETE POST
+  // ---------------------------------------------------------------------------
 
   const handleDelete = async () => {
     try {
       await axios.delete(`/api/dbhandler?model=posts&id=${post.id}`);
       setDeleted(true);
       alert("Post deleted");
-    } catch (error) {
-      console.error(error);
-    }
+    } catch (error) {}
   };
+
+  // ---------------------------------------------------------------------------
 
   function formatDate(dateString) {
     const date = new Date(dateString);
@@ -155,10 +238,11 @@ const Post = ({ post }) => {
     return "just now";
   }
 
+  // ---------------------------------------------------------------------------
+
   return (
     <div className="mt-10 flex flex-col rounded-sm w-[100vw] max-w-sm overflow-clip">
 
-      {/** DELETE BUTTON FOR ADMINS */}
       {(user.role === "admin" || user.role === "moderator") && (
         <Button
           variant="destructive"
@@ -171,6 +255,8 @@ const Post = ({ post }) => {
       )}
 
       <div className="w-full flex flex-col justify-center items-center">
+
+        {/* USER ROW */}
         <div className="w-full flex flex-row">
           <img
             src={
@@ -179,18 +265,21 @@ const Post = ({ post }) => {
             }
             className="w-10 h-10 rounded-full m-1"
           />
+
           <div className="flex flex-row w-full">
             <div className="flex-1 text-xl font-semibold px-3">
-              {post.user?.username || "User"}
+              {post.user?.username}
             </div>
+
             <div className="flex flex-col text-xs">
               <div>{formatDate(post.updatedAt)}</div>
             </div>
           </div>
         </div>
 
-        {/** MEDIA */}
+        {/* MEDIA */}
         <div className="w-full flex flex-col items-center">
+
           {post.type === "image" && <img src={post.url} className="w-full" />}
 
           {post.type === "video" && (
@@ -211,7 +300,7 @@ const Post = ({ post }) => {
             ))}
         </div>
 
-        {/** TEXT SECTION */}
+        {/* TEXT */}
         <div className="w-full bg-secondary pb-2">
 
           <div className="p-2">
@@ -221,15 +310,22 @@ const Post = ({ post }) => {
             <div>{post.post}</div>
           </div>
 
-          <div className="px-2 flex gap-2 items-center">{likeCount} <BiSolidLike /></div>
+          <div className="px-2 flex gap-2 items-center">
+            {likeCount} <BiSolidLike />
+          </div>
 
-          {/** ACTION BUTTONS */}
+          {/* ACTION BUTTONS */}
           <div className="w-full flex gap-2 px-2 mt-1">
-            <Button className={`flex-1 text-2xl ${liked ? "bg-blue-500 text-white" : ""}`} onClick={handleLike}>
+
+            {/* LIKE BUTTON */}
+            <Button
+              className={`flex-1 text-2xl ${liked ? "bg-blue-500 text-white" : ""}`}
+              onClick={handleLike}
+            >
               {liked ? <BiSolidLike /> : <BiLike />}
             </Button>
 
-            {/* DRAWER TRIGGER */}
+            {/* COMMENT DRAWER */}
             <Drawer open={openDrawer} onOpenChange={setOpenDrawer}>
               <DrawerTrigger asChild>
                 <Button
@@ -240,7 +336,6 @@ const Post = ({ post }) => {
                 </Button>
               </DrawerTrigger>
 
-              {/** COMMENT DRAWER */}
               <DrawerContent className="max-w-lg mx-auto pb-10">
 
                 <DrawerHeader>
@@ -249,36 +344,46 @@ const Post = ({ post }) => {
                   </DrawerTitle>
                 </DrawerHeader>
 
-                {/** COMMENTS LIST FIRST */}
+                {/* COMMENTS LIST FIRST */}
                 <div className="max-h-[55vh] overflow-y-auto px-4">
                   <Comments videoId={post.id} reload={reload} />
                 </div>
 
-                {/** FORM AT THE BOTTOM */}
+                {/* COMMENT FORM OR CTA BUTTON */}
                 <div className="flex flex-col gap-3 px-4 mt-4">
-                  <div className="font-semibold">@{user.username}</div>
 
-                  <TextArea
-                    onChange={e => setComment(e.target.value)}
-                    value={comment}
-                    className="h-[120px]"
-                  />
-
-                  <DrawerFooter className="flex flex-row gap-2">
-                    <DrawerClose asChild>
-                      <Button variant="outline" className="flex-1">
-                        Cancel
-                      </Button>
-                    </DrawerClose>
-
-                    <Button
-                      className="flex-1"
-                      disabled={comment.length < 1}
-                      onClick={saveComment}
-                    >
-                      Send
+                  {/* If not logged in or is visitor → SHOW BUTTON */}
+                  {(!user || user.username === "visitor") ? (
+                    <Button className="w-full py-3 text-base">
+                      Login to comment
                     </Button>
-                  </DrawerFooter>
+                  ) : (
+                    <>
+                      <div className="font-semibold">@{user.username}</div>
+
+                      <TextArea
+                        onChange={(e) => setComment(e.target.value)}
+                        value={comment}
+                        className="h-[120px]"
+                      />
+
+                      <DrawerFooter className="flex flex-row gap-2">
+                        <DrawerClose asChild>
+                          <Button variant="outline" className="flex-1">
+                            Cancel
+                          </Button>
+                        </DrawerClose>
+
+                        <Button
+                          className="flex-1"
+                          disabled={comment.length < 1}
+                          onClick={saveComment}
+                        >
+                          Send
+                        </Button>
+                      </DrawerFooter>
+                    </>
+                  )}
                 </div>
               </DrawerContent>
             </Drawer>

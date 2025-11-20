@@ -42,7 +42,20 @@ const Home = () => {
           <div>
             <ZoomInText />
           </div>
-          <div className="flex w-full max-w-sm justify-between my-5 items-center text-lg font-semibold gap-2 mx-auto text-center">
+        </div>
+      {/* <CoverCarousel numCards={5} /> */}
+
+    
+
+          <TextCarousel
+            text="O Good Forever***O Good Forever***O Good Forever***"
+            speed={2000}
+            image={true}
+            imageUrl="./crown.webp"
+            direction="left"
+          />
+      </div>
+      <div className="flex w-full max-w-sm justify-between my-5 items-center text-lg font-semibold gap-2 mx-auto text-center">
                 <Link href='/blog/?tab=praisevideo' className='transition-all flex flex-row gap-2 w-full justify-center items-center'>
                     <Button className="flex-1 bg-transparent border-accent border-2 text-accent capitalize font-semibold hover:text-accent/50 ">Praise</Button>
                 </Link>
@@ -50,19 +63,6 @@ const Home = () => {
                     <Button className="flex-1 bg-transparent border-accent border-2 text-accent capitalize font-semibold hover:text-accent/50 ">Worship</Button>
                 </Link>
           </div>
-        </div>
-      {/* <CoverCarousel numCards={5} /> */}
-
-    
-
-      <TextCarousel
-      text="O Good Forever***O Good Forever***O Good Forever***"
-      speed={2000}
-      image={true}
-      imageUrl="./crown.webp"
-      direction="left"
-    />
-      </div>
     {/*
       <div className="h-[80vh] w-full flex justify-center">
         <div className="flex-1 flex flex-col justify-center items-center max-w-4xl">

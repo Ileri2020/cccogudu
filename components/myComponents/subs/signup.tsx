@@ -25,6 +25,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { register } from '@/server/action/signup'
 import axios from 'axios'
+import { FcGoogle } from 'react-icons/fc'
+import Login from './login'
+import { googleSignIn } from './googlesignin'
 
 const Signup = () => {
   // const [details, setDetails] = useState({
@@ -164,6 +167,25 @@ const Signup = () => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction>Continue</AlertDialogAction>
           </AlertDialogFooter> */}
+          <div className="w-full my-2">
+            <form
+              action={googleSignIn}
+            >
+              <Button
+                className=" relative w-full max-w-[300px] mx-auto flex /space-x-2 items-center justify-center text-black rounded-md h-10 font-medium shadow-input bg-gray-50 dark:bg-zinc-900 dark:shadow-[0px_0px_1px_1px_var(--neutral-800)]"
+                type="submit"
+              >
+                <FcGoogle className="h-4 w-4 text-neutral-800 dark:text-neutral-300" />
+                <span className="text-neutral-700 dark:text-neutral-300 text-sm">
+                  Google
+                </span>
+              </Button>
+            </form>
+          </div>
+
+          <div className="w-full my-2">
+            <Login />
+          </div>
         </DrawerContent>
       </Drawer>
     </div>

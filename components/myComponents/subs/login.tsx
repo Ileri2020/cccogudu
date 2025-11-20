@@ -34,6 +34,7 @@ import { FcGoogle } from 'react-icons/fc'
 import { googleSignIn } from './googlesignin'
 import { usersession } from '@/session'
 import { useSession } from "next-auth/react";
+import Signup from './signup'
 
 
 
@@ -146,6 +147,10 @@ const Login = () => {
                 </span>
               </Button>
             </form>
+          </div>
+
+          <div className="w-full my-2">
+            <Signup />
           </div>
         </DrawerContent>
       </Drawer>

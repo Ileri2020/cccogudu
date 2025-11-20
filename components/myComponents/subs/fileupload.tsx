@@ -299,9 +299,12 @@ export const PostButton = () => {
   return (
     <div className='z-10 w-full'>
       <Drawer>
-        <DrawerTrigger asChild className='w-full h-10 border-2 border-accent flex items-center rounded-full font-bold text-accent text-2xl hover:text-accent hover:bg-accent/40 z-10'>
-          <BiPlus />
+        <DrawerTrigger asChild>
+          <button className='w-full h-10 border-2 border-accent flex items-center justify-center gap-2 rounded-full font-bold text-accent text-2xl hover:text-accent hover:bg-accent/40'>
+            Post <BiPlus />
+          </button>
         </DrawerTrigger>
+
         <DrawerContent className='flex flex-col justify-center items-center py-10 /bg-red-500 max-w-5xl mx-auto'>
           <DrawerHeader>
             <DrawerTitle className='w-full text-center'>

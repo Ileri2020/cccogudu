@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 "use client"
 import { motion } from "framer-motion"
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,7 @@ import Post from "@/components/myComponents/subs/post";
 import Posts from "@/components/myComponents/subs/posts";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import Link from "next/link"
 
 
 const Home = () => {
@@ -40,6 +41,14 @@ const Home = () => {
           </div>
           <div>
             <ZoomInText />
+          </div>
+          <div className="flex w-full max-w-sm justify-between my-5 items-center text-lg font-semibold gap-2 mx-auto text-center">
+                <Link href='/blog/?tab=praisevideo' className='transition-all flex flex-row gap-2 w-full justify-center items-center'>
+                    <Button className="flex-1 bg-transparent border-accent border-2 text-accent capitalize font-semibold hover:text-accent/50 ">Praise</Button>
+                </Link>
+                <Link href='/blog/?tab=worshipvideo' className='transition-all flex flex-row gap-2 w-full justify-center items-center'>
+                    <Button className="flex-1 bg-transparent border-accent border-2 text-accent capitalize font-semibold hover:text-accent/50 ">Worship</Button>
+                </Link>
           </div>
         </div>
       {/* <CoverCarousel numCards={5} /> */}
@@ -74,6 +83,7 @@ const Home = () => {
     */}
 
 <div className="flex flex-col">
+
   
 <ScrollArea className="relative max-h-[110vh] /lg:h-[80vh] w-full mx-auto flex justify-center items-center max-w-md overflow-clip" >
         <UpcomingEvents page={"event"} />
@@ -158,23 +168,26 @@ const UpcomingEvents = ({ page, media = "" }) => {
   // ==========================================================================
   // SORT EVENTS
   // ==========================================================================
-  const sortEvents = (events, order, mediaId) => {
-    if (mediaId && order === "random") return events;
+ const sortEvents = (events: any[], order: string, mediaId: string) => {
+  if (mediaId && order === "random") return events;
 
-    if (order === "asc") {
-      return [...events].sort(
-        (a, b) => new Date(a.updatedAt) - new Date(b.updatedAt)
-      );
-    }
+  if (order === "asc") {
+    return [...events].sort(
+      (a, b) =>
+        new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
+    );
+  }
 
-    if (order === "desc") {
-      return [...events].sort(
-        (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
-      );
-    }
+  if (order === "desc") {
+    return [...events].sort(
+      (a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
+  }
 
-    return [...events].sort(() => Math.random() - 0.5); // random
-  };
+  return [...events].sort(() => Math.random() - 0.5); // random
+};
+
 
   // ==========================================================================
   // PRIORITIZE MEDIA IMAGE FIRST
@@ -264,20 +277,21 @@ const UpcomingEvents = ({ page, media = "" }) => {
   // ==========================================================================
   // FORMAT DATE
   // ==========================================================================
-  function formatDate(dateString) {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = now - date;
+  function formatDate(dateString: string) {
+  const date = new Date(dateString);
+  const now = new Date();
 
-    const min = Math.floor(diff / 60000);
-    const hrs = Math.floor(min / 60);
-    const days = Math.floor(hrs / 24);
+  const diff = now.getTime() - date.getTime(); // FIXED ✅ number - number
 
-    if (days > 0) return `last ${days} d`;
-    if (hrs > 0) return `last ${hrs} h`;
-    if (min > 0) return `last ${min} m`;
-    return "just now";
-  }
+  const min = Math.floor(diff / 60000);
+  const hrs = Math.floor(min / 60);
+  const days = Math.floor(hrs / 24);
+
+  if (days > 0) return `last ${days} d`;
+  if (hrs > 0) return `last ${hrs} h`;
+  if (min > 0) return `last ${min} m`;
+  return "just now";
+}
 
   // ==========================================================================
   // CONDITIONAL RENDERING FOR NO EVENTS

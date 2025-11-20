@@ -17,6 +17,7 @@ import TextArea from "@/components/textArea";
 import axios from "axios";
 import { useAppContext } from "@/hooks/useAppContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import Login from "@/components/myComponents/subs/login";
 
 
 // -----------------------------------------------------------------------------
@@ -354,9 +355,7 @@ const Post = ({ post }) => {
 
                   {/* If not logged in or is visitor → SHOW BUTTON */}
                   {(!user || user.username === "visitor") ? (
-                    <Button className="w-full py-3 text-base">
-                      Login to comment
-                    </Button>
+                    <Login />
                   ) : (
                     <>
                       <div className="font-semibold">@{user.username}</div>

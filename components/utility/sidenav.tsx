@@ -27,15 +27,18 @@ const Sidenav = () => {
                      )
                 })}
             </nav>
-            <div className="flex flex-col w-full justify-center items-center text-lg font-semibold">
-                <Link href='/blog/?tab=praisevideo' className={`${'/blog/?tab=praisevideo' === pathname && "text-accent border-b-2 border-accent"} capitalize font-medium hover:text-accent transition-all flex flex-row gap-2 w-full justify-center items-center`}>
+            <div className="flex flex-col w-full justify-center items-center text-lg font-semibold gap-2">
+                <Link href='/blog/?tab=praisevideo' className={`${'/blog/?tab=praisevideo' === pathname && "text-accent border-b-2 border-accent"} border-2 border-accent/80 rounded-full capitalize font-medium hover:text-accent transition-all flex flex-row gap-2 w-full justify-center items-center`}>
                     <div>Praise</div>
                 </Link>
-                <Link href='/blog/?tab=worshipvideo' className={`${'/blog/?tab=worshipvideo' === pathname && "text-accent border-b-2 border-accent"} capitalize font-medium hover:text-accent transition-all flex flex-row gap-2 w-full justify-center items-center`}>
+                <Link href='/blog/?tab=worshipvideo' className={`${'/blog/?tab=worshipvideo' === pathname && "text-accent border-b-2 border-accent"} border-2 border-accent/80 rounded-full capitalize font-medium hover:text-accent transition-all flex flex-row gap-2 w-full justify-center items-center`}>
                     <div>Worship</div>
                 </Link>
             </div>
-            <PostButton />
+           <div className="flex flex-col w-full justify-center items-center text-lg font-semibold">
+            <div>Create a post</div>
+             <PostButton />
+           </div>
             <div className="my-5 w-full flex flex-row">
                 <div className="flex w-full flex-1"></div>
                 <ModeToggle />

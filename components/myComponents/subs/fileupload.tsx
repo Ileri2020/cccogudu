@@ -301,7 +301,7 @@ export const PostButton = () => {
       <Drawer>
         <DrawerTrigger asChild>
           <button className='w-full h-10 border-2 border-accent flex items-center justify-center gap-2 rounded-full font-bold text-accent text-2xl hover:text-accent hover:bg-accent/40'>
-            Post <BiPlus />
+            <BiPlus />
           </button>
         </DrawerTrigger>
 

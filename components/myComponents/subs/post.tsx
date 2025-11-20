@@ -274,6 +274,7 @@ const Post = ({ post }) => {
 
             <div className="flex flex-col text-xs">
               <div>{formatDate(post.updatedAt)}</div>
+              <ShareButton textToCopy={postUrl} />
             </div>
           </div>
         </div>
@@ -394,3 +395,28 @@ const Post = ({ post }) => {
 };
 
 export default Post;
+
+
+
+
+
+
+const ShareButton = ({ textToCopy }) => {
+  const [isCopied, setIsCopied] = React.useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000); // Reset after 2 seconds
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err);
+    }
+  };
+
+  return (
+    <Button variant='outline' onClick={handleCopy} className='/absolute /right-0 /top-[50%] h-4'>
+      {isCopied ? 'Copied!' : 'Copy'}
+    </Button>
+  );
+};

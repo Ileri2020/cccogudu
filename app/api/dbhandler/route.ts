@@ -8,19 +8,13 @@ const prisma = new PrismaClient();
 
 
 export async function GET(req: NextRequest) {
-
   const { searchParams } = new URL(req.url);
   
-  // Destructure and provide defaults
-  const model = searchParams.get('model') || null;
-  const id = searchParams.get('id') || null;
-  const body = searchParams.get('body') || null;
+  const model = searchParams.get("model") || null;
+  const search = searchParams.get("search") || null; // new search param
+  const id = searchParams.get("id") || null;
 
-  const { method } = req; 
-  console.log("in db handler",model, id, method, body)
-
-
-  const modelMap = {
+  const prismaModelMap = {
     ministries: prisma.ministry,
     departments: prisma.department,
     users: prisma.user,
@@ -29,119 +23,63 @@ export async function GET(req: NextRequest) {
     billboards: prisma.billboard,
     posts: prisma.post,
     bible: prisma.bible,
-    meetings : prisma.meeting,
-    playlists : prisma.playlist,
+    meetings: prisma.meeting,
+    playlists: prisma.playlist,
   };
 
-  const prismaModel = modelMap[model];
+  const prismaModel = prismaModelMap[model];
 
   if (!prismaModel) {
-    console.log("in prisma model check function")
-    return new Response(JSON.stringify({message : "invalid model"}), {
+    return new Response(JSON.stringify({ message: "invalid model" }), {
       status: 400,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   }
 
-  
-  if (id == null){
-
-
-    if (model === 'likes' || model === 'comments' || model === 'posts')  {
-      try {
-        const items = await prismaModel.findMany();
-        const userIds = items.map(item => item.userId);
-        const users = await prisma.user.findMany({
-          where: {
-            id: { in: userIds },
-          },
-          select: {
-            id: true,
-            email: true,
-            username: true,
-            name: true,
-            avatarUrl: true,
-          },
+  try {
+    // If id is provided, fetch single record
+    if (id) {
+      const item = await prismaModel.findUnique({ where: { id } });
+      if (!item)
+        return new Response(JSON.stringify({ error: "Document not found" }), {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
         });
-
-        const result = items.map(item => {
-          const user = users.find(user => user.id === item.userId);
-          return { ...item, user };
-        });
-
-        return new Response(JSON.stringify(result), { status: 200, headers: { 'Content-Type': 'application/json' }, });
-      } catch (error) {
-        console.error('Database error:', error);
-        return new Response(JSON.stringify({ message: 'Database error' }), { status: 500, headers: { 'Content-Type': 'application/json' }, });
-      }
+      return new Response(JSON.stringify(item), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
     }
-  
 
-    
-    try {
-      const items = await prismaModel.findMany();
+    // If model is posts and search is provided, filter by title
+    if (model === "posts" && search) {
+      const items = await prisma.post.findMany({
+        where: {
+          title: { contains: search, mode: "insensitive" }, // case-insensitive
+        },
+        include: { user: { select: { name: true, username: true, email: true } } },
+      });
       return new Response(JSON.stringify(items), {
         status: 200,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       });
-    } catch (error) {
-      console.error('Database error:', error);
-      return new Response(
-        JSON.stringify({ error: 'Failed to fetch items' }),
-        { status: 405, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-  }else{
-    if(model === "likes" || model === "comments"){
-      try {
-        const item = await prismaModel.findMany({
-          where: {
-            contentId: id,
-          },
-        });
-        
-        // if (!item) return new Response(
-        //   JSON.stringify({ error: 'Document not found' }),
-        //   { status: 405, headers: { 'Content-Type': 'application/json' } }
-        // );
-        console.log(item)
-        return new Response(JSON.stringify(item), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        });
-      } catch (error) {
-        console.error('Database error:', error);
-        return new Response(
-          JSON.stringify({ error: 'Failed to fetch items' }),
-          { status: 405, headers: { 'Content-Type': 'application/json' } }
-        );
-      }
     }
 
-
-    try {
-        const item = await prismaModel.findUnique({
-          where: { id },
-        });
-
-        if (!item) return new Response(
-          JSON.stringify({ error: 'Document not found' }),
-          { status: 405, headers: { 'Content-Type': 'application/json' } }
-        );
-
-        return new Response(JSON.stringify(item), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        });
-      } catch (error) {
-        console.error('Database error:', error);
-        return new Response(
-          JSON.stringify({ error: 'Failed to fetch items' }),
-          { status: 405, headers: { 'Content-Type': 'application/json' } }
-        );
-      }
+    // Otherwise fetch all records
+    const items = await prismaModel.findMany();
+    return new Response(JSON.stringify(items), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    console.error("Database error:", error);
+    return new Response(JSON.stringify({ error: "Failed to fetch items" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }
+
 
 
 

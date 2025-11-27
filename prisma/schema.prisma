@@ -131,6 +131,7 @@ model Post {
   likes     Like[]
   playlists   Playlist[]  @relation(fields: [playlistsId], references: [id])
   playlistsId   String[]  @db.ObjectId
+  celeastial   Boolean   @default(false)
   // plays        Int      @default(0)
   // thumbnailUrl String?   
   createdAt   DateTime? @default(now())

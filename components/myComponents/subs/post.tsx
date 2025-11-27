@@ -12,25 +12,16 @@ import {
   DrawerFooter,
   DrawerClose
 } from "@/components/ui/drawer";
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import TextArea from "@/components/textArea";
 import axios from "axios";
 import { useAppContext } from "@/hooks/useAppContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import Login from "@/components/myComponents/subs/login";
+import { motion, AnimatePresence } from "framer-motion";
 
-
-// -----------------------------------------------------------------------------
-// EMBEDDED COMMENTS COMPONENT
-// -----------------------------------------------------------------------------
-
-const Comments = ({
-  videoId,
-  reload
-}: {
-  videoId: string;
-  reload: boolean;
-}) => {
+// ---------------------- COMMENTS COMPONENT ----------------------
+const Comments = ({ videoId, reload }: { videoId: string; reload: boolean }) => {
   const { comments, setComments } = useAppContext();
   const [loading, setLoading] = useState(true);
   const [compComments, setCompComments] = useState<any[]>([]);
@@ -49,7 +40,7 @@ const Comments = ({
 
     getComments(videoId)
       .then((res) => {
-        setComments(res); 
+        setComments(res);
         setCompComments(res.filter((c: any) => c.contentId === videoId));
         setLoading(false);
       })
@@ -61,16 +52,11 @@ const Comments = ({
   return (
     <div className="space-y-3">
       {loading && <div className="text-sm opacity-70">Loading comments...</div>}
-
       {!loading && compComments.length < 1 && (
         <div className="text-sm opacity-70">No comments yet...</div>
       )}
-
       {compComments.map((comment) => (
-        <div
-          key={comment.id}
-          className="border rounded-md p-2 bg-secondary"
-        >
+        <div key={comment.id} className="border rounded-md p-2 bg-secondary">
           <div className="font-semibold">@{comment.username}</div>
           <div>{comment.comment}</div>
           <div className="text-xs opacity-60">{comment.createdAt}</div>
@@ -80,43 +66,48 @@ const Comments = ({
   );
 };
 
-
-// -----------------------------------------------------------------------------
-// MAIN POST COMPONENT
-// -----------------------------------------------------------------------------
-
-const Post = ({ post }) => {
+// ---------------------- MAIN POST COMPONENT ----------------------
+const Post = ({ post, onSwipeLeft, onSwipeRight }) => {
   const { user } = useAppContext();
+  const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement | null>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const isPlaying = useRef(false);
 
   const [liked, setLiked] = useState(false);
   const [likeId, setLikeId] = useState(null);
   const [likeCount, setLikeCount] = useState(0);
-  const [deleted, setDeleted] = useState(false);
-
   const [comment, setComment] = useState("");
   const [reload, setReload] = useState(false);
-
   const [openDrawer, setOpenDrawer] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [openLoginDialog, setOpenLoginDialog] = useState(false);
 
-  const mediaRef = useRef(null);
-  const observerRef = useRef(null);
-  const isPlaying = useRef(false);
+  // Double tap & tap state
+  const lastTapRef = useRef(0);
+  const tapTimeoutRef = useRef<any>(null);
+  const [showHeart, setShowHeart] = useState(false);
+
+  // Horizontal swipe
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+  const SWIPE_THRESHOLD = 50;
+
+  // Progress bar
+  const [progress, setProgress] = useState(0);
+  const progressRef = useRef<number>(0);
 
   const postUrl = `${process.env.NEXT_PUBLIC_ORIGIN_URL}/blog/${post.id}?page=${post.for}`;
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // ---------------------------------------------------------------------------
-  // LIKE FETCH
-  // ---------------------------------------------------------------------------
 
+  // ---------------------- LIKE FETCH ----------------------
   const fetchLikeCount = async () => {
     try {
       const response = await axios.get(`/api/dbhandler?model=likes&id=${post.id}`);
-
       if (response.status === 200) {
         setLikeCount(response.data.length);
-
-        const userLike = response.data.find((like) => like.userId === user.id);
+        const userLike = response.data.find((like) => like.userId === user?.id);
         if (userLike) {
           setLikeId(userLike.id);
           setLiked(true);
@@ -125,298 +116,321 @@ const Post = ({ post }) => {
           setLiked(false);
         }
       }
-    } catch (error) {
-      console.error(error);
-    }
+    } catch (error) {}
   };
-
-  // ---------------------------------------------------------------------------
-  // EFFECTS
-  // ---------------------------------------------------------------------------
 
   useEffect(() => {
     fetchLikeCount();
-
     if (mediaRef.current && "IntersectionObserver" in window) {
       observerRef.current = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting && !isPlaying.current) {
-              mediaRef.current.play().catch(() => {});
+              mediaRef.current?.play().catch(() => {});
               isPlaying.current = true;
             } else if (!entry.isIntersecting && isPlaying.current) {
-              mediaRef.current.pause();
+              mediaRef.current?.pause();
               isPlaying.current = false;
             }
           });
         },
-        { threshold: 0.5 }
+        { threshold: 0.6 }
       );
-
       observerRef.current.observe(mediaRef.current);
-      return () => observerRef.current.disconnect();
+      return () => observerRef.current?.disconnect();
     }
   }, []);
 
-  // ---------------------------------------------------------------------------
-  // LIKE ACTION
-  // ---------------------------------------------------------------------------
-
+  // ---------------------- LIKE ACTION ----------------------
   const handleLike = async () => {
     if (!user || user.username === "visitor") {
-      alert("Login to react");
+      setOpenLoginDialog(true);
       return;
     }
-
     try {
       if (!liked) {
         const res = await axios.post("/api/dbhandler?model=likes", {
           userId: user.id,
-          contentId: post.id
+          contentId: post.id,
         });
-
-        setLikeId(res.data.id);
         setLiked(true);
+        setLikeId(res.data.id);
+        setLikeCount((c) => c + 1);
       } else {
         await axios.delete(`/api/dbhandler?model=likes&id=${likeId}`);
         setLiked(false);
         setLikeId(null);
+        setLikeCount((c) => c - 1);
       }
-    } catch (error) {}
+    } catch (err) {}
   };
 
-  // ---------------------------------------------------------------------------
-  // COMMENT SAVE
-  // ---------------------------------------------------------------------------
+  // ---------------------- TAP / DOUBLE TAP ----------------------
+  const togglePlayPause = () => {
+    if (!mediaRef.current) return;
+    if (mediaRef.current.paused) {
+      mediaRef.current.play();
+      isPlaying.current = true;
+    } else {
+      mediaRef.current.pause();
+      isPlaying.current = false;
+    }
+  };
 
-  const saveComment = async () => {
+  const handleDoubleTap = () => {
     if (!user || user.username === "visitor") {
-      alert("Login to comment");
+      setOpenLoginDialog(true);
       return;
     }
+    setShowHeart(true);
+    setTimeout(() => setShowHeart(false), 700);
+    handleLike();
+  };
 
+  const handleTap = () => {
+    const now = Date.now();
+    const delta = now - lastTapRef.current;
+    if (delta < 250) {
+      clearTimeout(tapTimeoutRef.current);
+      handleDoubleTap();
+    } else {
+      tapTimeoutRef.current = setTimeout(() => togglePlayPause(), 220);
+    }
+    lastTapRef.current = now;
+  };
+
+  // ---------------------- HORIZONTAL SWIPE ----------------------
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchStartX.current - touchEndX.current;
+    if (Math.abs(diff) > SWIPE_THRESHOLD) {
+      if (diff > 0 && onSwipeLeft) onSwipeLeft(post);
+      else if (diff < 0 && onSwipeRight) onSwipeRight(post);
+    }
+  };
+
+  // ---------------------- COMMENT ----------------------
+  const saveComment = async () => {
+    if (!user || user.username === "visitor") {
+      setOpenLoginDialog(true);
+      return;
+    }
     try {
       const res = await axios.post("/api/dbhandler?model=comments", {
         userId: user.id,
         username: user.username,
         contentId: post.id,
-        comment: comment
+        comment,
       });
-
       if (res.status === 200) {
         setComment("");
-        setReload(!reload);
+        setReload((r) => !r);
       }
-    } catch (error) {}
+    } catch (err) {}
   };
 
-  // ---------------------------------------------------------------------------
-  // DELETE POST
-  // ---------------------------------------------------------------------------
-
+  // ---------------------- DELETE ----------------------
   const handleDelete = async () => {
     try {
       await axios.delete(`/api/dbhandler?model=posts&id=${post.id}`);
-      setDeleted(true);
       alert("Post deleted");
-    } catch (error) {}
+    } catch (err) {}
   };
 
-  // ---------------------------------------------------------------------------
+  // ---------------------- PROGRESS BAR ----------------------
+  useEffect(() => {
+    if (!mediaRef.current) return;
+    const el = mediaRef.current;
 
-  function formatDate(dateString) {
+    const updateProgress = () => {
+      progressRef.current = el.currentTime / (el.duration || 1);
+      setProgress(progressRef.current);
+      requestAnimationFrame(updateProgress);
+    };
+    updateProgress();
+  }, [mediaRef.current]);
+
+  // ---------------------- DATE FORMAT ----------------------
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
-
     const min = Math.floor(diff / 60000);
     const hrs = Math.floor(min / 60);
     const days = Math.floor(hrs / 24);
-
     if (days > 0) return `last ${days} d`;
     if (hrs > 0) return `last ${hrs} h`;
     if (min > 0) return `last ${min} m`;
     return "just now";
-  }
-
-  // ---------------------------------------------------------------------------
+  };
 
   return (
-    <div className="mt-10 flex flex-col rounded-sm w-[100vw] max-w-sm overflow-clip">
+    <div className="mt-10 flex flex-col rounded-sm w-[100vw] max-w-sm overflow-clip relative">
 
+      {/* ADMIN DELETE */}
       {(user.role === "admin" || user.role === "moderator") && (
-        <Button
-          variant="destructive"
-          className="ml-2"
-          onClick={handleDelete}
-          disabled={deleted}
-        >
-          {deleted ? "Deleted" : "Delete"}
+        <Button variant="destructive" className="ml-2" onClick={handleDelete}>
+          Delete
         </Button>
       )}
 
-      <div className="w-full flex flex-col justify-center items-center">
-
-        {/* USER ROW */}
-        <div className="w-full flex flex-row">
-          <img
-            src={
-              post?.user?.avatarUrl ??
-              "https://res.cloudinary.com/dc5khnuiu/image/upload/v1752627019/uxokaq0djttd7gsslwj9.png"
-            }
-            className="w-10 h-10 rounded-full m-1"
-          />
-
-          <div className="flex flex-row w-full">
-            <div className="flex-1 text-xl font-semibold px-3">
-              {post.user?.username}
-            </div>
-
-            <div className="flex flex-col text-xs">
-              <div>{formatDate(post.updatedAt)}</div>
-              <ShareButton textToCopy={postUrl} />
-            </div>
-          </div>
+      {/* USER ROW */}
+      <div className="w-full flex flex-row items-center px-2 mb-2">
+        <img
+          src={post?.user?.avatarUrl ?? "https://res.cloudinary.com/dc5khnuiu/image/upload/v1752627019/uxokaq0djttd7gsslwj9.png"}
+          className="w-10 h-10 rounded-full"
+        />
+        <div className="ml-2 flex-1">
+          <div className="font-semibold">{post.user?.username}</div>
+          <div className="text-xs opacity-70">{formatDate(post.updatedAt)}</div>
         </div>
+        <ShareButton textToCopy={postUrl} />
+      </div>
 
-        {/* MEDIA */}
-        <div className="w-full flex flex-col items-center">
-
-          {post.type === "image" && <img src={post.url} className="w-full" />}
-
-          {post.type === "video" && (
-            <video
-              ref={mediaRef}
-              src={post.url}
-              className="w-full max-w-[360px]"
-              onCanPlay={() => setIsLoading(false)}
-              onError={() => setIsLoading(false)}
-            />
-          )}
-
-          {post.type === "audio" &&
-            (isLoading ? (
-              <Skeleton className="w-full h-[50px]" />
+      {/* MEDIA */}
+      <div className="relative w-full flex justify-center">
+        {post.type === "image" && (
+          <img src={post.url} className="w-full max-w-[360px]" />
+        )}
+        {(post.type === "video" || post.type === "audio") && (
+          <div
+            className="w-full max-w-[360px] relative"
+            onClick={handleTap}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {post.type === "video" ? (
+              <video ref={videoRef} src={post.url} className="w-full" />
             ) : (
-              <audio ref={mediaRef} src={post.url} controls />
-            ))}
-        </div>
-
-        {/* TEXT */}
-        <div className="w-full bg-secondary pb-2">
-
-          <div className="p-2">
-            {post.for !== "post" && (
-              <div className="font-semibold text-lg">{post.title}</div>
+              <audio ref={audioRef} src={post.url} controls className="w-full" />
             )}
-            <div>{post.post}</div>
-          </div>
 
-          <div className="px-2 flex gap-2 items-center">
-            {likeCount} <BiSolidLike />
-          </div>
-
-          {/* ACTION BUTTONS */}
-          <div className="w-full flex gap-2 px-2 mt-1">
-
-            {/* LIKE BUTTON */}
-            <Button
-              className={`flex-1 text-2xl ${liked ? "bg-blue-500 text-white" : ""}`}
-              onClick={handleLike}
-            >
-              {liked ? <BiSolidLike /> : <BiLike />}
-            </Button>
-
-            {/* COMMENT DRAWER */}
-            <Drawer open={openDrawer} onOpenChange={setOpenDrawer}>
-              <DrawerTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="flex-1 text-2xl text-accent border-2 border-accent"
+            {/* Heart animation */}
+            <AnimatePresence>
+              {showHeart && (
+                <motion.div
+                  initial={{ scale: 0.3, opacity: 0 }}
+                  animate={{ scale: 1.4, opacity: 1 }}
+                  exit={{ scale: 0.3, opacity: 0 }}
+                  className="absolute inset-0 flex items-center justify-center pointer-events-none"
                 >
-                  <BiComment />
-                </Button>
-              </DrawerTrigger>
-
-              <DrawerContent className="max-w-lg mx-auto pb-10">
-
-                <DrawerHeader>
-                  <DrawerTitle className="text-center text-xl">
-                    Comments
-                  </DrawerTitle>
-                </DrawerHeader>
-
-                {/* COMMENTS LIST FIRST */}
-                <div className="max-h-[55vh] overflow-y-auto px-4">
-                  <Comments videoId={post.id} reload={reload} />
-                </div>
-
-                {/* COMMENT FORM OR CTA BUTTON */}
-                <div className="flex flex-col gap-3 px-4 mt-4">
-
-                  {/* If not logged in or is visitor → SHOW BUTTON */}
-                  {(!user || user.username === "visitor") ? (
-                    <Login />
-                  ) : (
-                    <>
-                      <div className="font-semibold">@{user.username}</div>
-
-                      <TextArea
-                        onChange={(e) => setComment(e.target.value)}
-                        value={comment}
-                        className="h-[120px]"
-                      />
-
-                      <DrawerFooter className="flex flex-row gap-2">
-                        <DrawerClose asChild>
-                          <Button variant="outline" className="flex-1">
-                            Cancel
-                          </Button>
-                        </DrawerClose>
-
-                        <Button
-                          className="flex-1"
-                          disabled={comment.length < 1}
-                          onClick={saveComment}
-                        >
-                          Send
-                        </Button>
-                      </DrawerFooter>
-                    </>
-                  )}
-                </div>
-              </DrawerContent>
-            </Drawer>
+                  <BiSolidLike className="text-white drop-shadow-xl" size={80} />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
+        )}
+
+        {/* PROGRESS BAR */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-black/20 z-20">
+          <div
+            className="h-full bg-blue-500"
+            style={{ width: `${progress * 100}%` }}
+          />
         </div>
       </div>
+
+      {/* TEXT */}
+      <div className="bg-secondary p-2">
+        {post.for !== "post" && <div className="font-semibold text-lg">{post.title}</div>}
+        <div>{post.post}</div>
+
+        <div className="flex items-center gap-2 mt-2">
+          {likeCount} <BiSolidLike />
+        </div>
+
+        {/* ACTION BUTTONS */}
+        <div className="flex gap-2 mt-1">
+          <Button
+            className={`flex-1 text-2xl ${liked ? "bg-blue-500 text-white" : ""}`}
+            onClick={handleLike}
+          >
+            {liked ? <BiSolidLike /> : <BiLike />}
+          </Button>
+
+          <Drawer open={openDrawer} onOpenChange={setOpenDrawer}>
+            <DrawerTrigger asChild>
+              <Button variant="outline" className="flex-1 text-2xl text-accent border-2 border-accent">
+                <BiComment />
+              </Button>
+            </DrawerTrigger>
+
+            <DrawerContent className="max-w-lg mx-auto pb-10">
+              <DrawerHeader>
+                <DrawerTitle className="text-center text-xl">Comments</DrawerTitle>
+              </DrawerHeader>
+
+              <div className="max-h-[55vh] overflow-y-auto px-4">
+                <Comments videoId={post.id} reload={reload} />
+              </div>
+
+              <div className="flex flex-col gap-3 px-4 mt-4">
+                {(!user || user.username === "visitor") ? (
+                  <Login />
+                ) : (
+                  <>
+                    <div className="font-semibold">@{user.username}</div>
+                    <TextArea
+                      onChange={(e) => setComment(e.target.value)}
+                      value={comment}
+                      className="h-[120px]"
+                    />
+                    <DrawerFooter className="flex gap-2">
+                      <DrawerClose asChild>
+                        <Button variant="outline" className="flex-1">Cancel</Button>
+                      </DrawerClose>
+                      <Button className="flex-1" disabled={comment.length < 1} onClick={saveComment}>Send</Button>
+                    </DrawerFooter>
+                  </>
+                )}
+              </div>
+            </DrawerContent>
+          </Drawer>
+        </div>
+      </div>
+
+      {/* LOGIN DIALOG */}
+      <Dialog open={openLoginDialog} onOpenChange={setOpenLoginDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-center">Login Required</DialogTitle>
+          </DialogHeader>
+          <div className="py-6 flex justify-center">
+            <Login />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
 
 export default Post;
 
-
-
-
-
-
-const ShareButton = ({ textToCopy }) => {
-  const [isCopied, setIsCopied] = React.useState(false);
+// ---------------------- COMPACT SHARE BUTTON ----------------------
+const ShareButton = ({ textToCopy }: { textToCopy: string }) => {
+  const [isCopied, setIsCopied] = useState(false);
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(textToCopy);
       setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000); // Reset after 2 seconds
+      setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy to clipboard:', err);
+      console.error(err);
     }
   };
 
   return (
-    <Button variant='outline' onClick={handleCopy} className='/absolute /right-0 /top-[50%] h-4'>
-      {isCopied ? 'Copied!' : 'Copy'}
+    <Button variant="outline" onClick={handleCopy} className="h-6 px-2 text-sm">
+      {isCopied ? "Copied!" : "Copy"}
     </Button>
-  );
+  );
 };

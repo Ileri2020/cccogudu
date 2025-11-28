@@ -96,21 +96,23 @@ const Navbar = (): JSX.Element => {
 
             {/* Floating Search Input Dropdown */}
             <DropdownMenu open={isFocused} onOpenChange={setIsFocused}>
-              <DropdownMenuTrigger asChild>
-                <div className="relative w-[200px] lg:flex">
+              
+                <div className="relative w-[300px] lg:flex">
                   <Input
                     placeholder="Search posts..."
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-                    className="flex-1 border-0 dark:border-2"
+                    className="flex-1 border-0 dark:border-2 bg-accent/10"
                   />
-                  <Button className="absolute right-0 h-full rounded-sm text-background text-xl">
-                    <AiOutlineSearch />
-                  </Button>
+                  <DropdownMenuTrigger asChild>
+                    <Button className="absolute right-0 h-full rounded-sm text-background text-xl">
+                      <AiOutlineSearch />
+                    </Button>
+                  </DropdownMenuTrigger>
                 </div>
-              </DropdownMenuTrigger>
+              
 
               {posts.length > 0 && (
                 <DropdownMenuContent

@@ -119,7 +119,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 name,
                 avatarUrl : image.replace(/=s\d+(-c)?/, "=s250-c") ?? image,
                 // authProviderId: id,
-                password: await bcrypt.hash(id, parseInt(process.env.SALT_ROUNDS)),
+                providerid: await bcrypt.hash(id, parseInt(process.env.SALT_ROUNDS)),
               },
             });
             

@@ -19,6 +19,8 @@ import { useAppContext } from "@/hooks/useAppContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import Login from "@/components/myComponents/subs/login";
 import { motion, AnimatePresence } from "framer-motion";
+import { FaCopy, FaRegCopy } from "react-icons/fa";
+import { MdOutlineFileDownload } from "react-icons/md";
 
 // ---------------------- COMMENTS COMPONENT ----------------------
 const Comments = ({ videoId, reload }: { videoId: string; reload: boolean }) => {
@@ -291,7 +293,19 @@ const Post = ({ post, onSwipeLeft, onSwipeRight }) => {
           <div className="font-semibold">{post.user?.username}</div>
           <div className="text-xs opacity-70">{formatDate(post.updatedAt)}</div>
         </div>
-        <ShareButton textToCopy={postUrl} />
+        <div>
+          <ShareButton textToCopy={postUrl} />
+          {/* DOWNLOAD BUTTON */}
+          <a
+            href={post.url}
+            download
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute bottom-3 right-3 bg-black/60 text-white px-3 py-2 rounded-md text-sm"
+          >
+            <MdOutlineFileDownload />
+          </a>
+        </div>
       </div>
 
       {/* MEDIA */}
@@ -299,6 +313,7 @@ const Post = ({ post, onSwipeLeft, onSwipeRight }) => {
         {post.type === "image" && (
           <img src={post.url} className="w-full max-w-[360px]" />
         )}
+
         {(post.type === "video" || post.type === "audio") && (
           <div
             className="w-full max-w-[360px] relative"
@@ -308,12 +323,22 @@ const Post = ({ post, onSwipeLeft, onSwipeRight }) => {
             onTouchEnd={handleTouchEnd}
           >
             {post.type === "video" ? (
-              <video ref={videoRef} src={post.url} className="w-full" />
+              <video
+                ref={videoRef}
+                src={post.url}
+                className="w-full"
+                controls
+              />
             ) : (
-              <audio ref={audioRef} src={post.url} controls className="w-full" />
+              <audio
+                ref={audioRef}
+                src={post.url}
+                controls
+                className="w-full"
+              />
             )}
 
-            {/* Heart animation */}
+            {/* HEART ANIMATION */}
             <AnimatePresence>
               {showHeart && (
                 <motion.div
@@ -337,6 +362,7 @@ const Post = ({ post, onSwipeLeft, onSwipeRight }) => {
           />
         </div>
       </div>
+
 
       {/* TEXT */}
       <div className="bg-secondary p-2">
@@ -430,7 +456,7 @@ const ShareButton = ({ textToCopy }: { textToCopy: string }) => {
 
   return (
     <Button variant="outline" onClick={handleCopy} className="h-6 px-2 text-sm">
-      {isCopied ? "Copied!" : "Copy"}
+      {isCopied ? <FaCopy /> : <FaRegCopy />}
     </Button>
   );
 };

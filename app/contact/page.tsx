@@ -24,7 +24,7 @@ const Contact = () => {
             <ContactForm />
           </div>
           <div className="flex flex-col flex-1 max-w-[480px] mx-3">
-            <div className="text-2xl font-semibold my-3 text-center md:text-start">Let's talk</div>
+            <div className="text-2xl font-semibold my-3 text-center md:text-start">Let&apos;s talk</div>
             <div className="my-5">{contact.description}</div>
             <div className="flex flex-col">
               {contact.contact.map((contact, index)=>{
@@ -46,6 +46,16 @@ const Contact = () => {
               />
             </div>
           </div>
+        </div>
+        <div className="w-full max-w-md min-w-[100px] overflow-clip mx-auto">
+          <video 
+            src="/layoutvid.webm" 
+            className="w-full" 
+            autoPlay 
+            loop 
+            muted 
+            playsInline
+          />
         </div>
       </div>
     </motion.section>

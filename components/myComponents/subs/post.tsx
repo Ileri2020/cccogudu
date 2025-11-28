@@ -69,14 +69,14 @@ const Comments = ({ videoId, reload }: { videoId: string; reload: boolean }) => 
 };
 
 // ---------------------- MAIN POST COMPONENT ----------------------
-const Post = ({ post, onSwipeLeft, onSwipeRight }) => {
+const Post = ({ post }: any) => {
   const { user } = useAppContext();
   const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const isPlaying = useRef(false);
 
   const [liked, setLiked] = useState(false);
-  const [likeId, setLikeId] = useState(null);
+  const [likeId, setLikeId] = useState<any>(null);
   const [likeCount, setLikeCount] = useState(0);
   const [comment, setComment] = useState("");
   const [reload, setReload] = useState(false);
@@ -102,14 +102,13 @@ const Post = ({ post, onSwipeLeft, onSwipeRight }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-
   // ---------------------- LIKE FETCH ----------------------
   const fetchLikeCount = async () => {
     try {
       const response = await axios.get(`/api/dbhandler?model=likes&id=${post.id}`);
       if (response.status === 200) {
         setLikeCount(response.data.length);
-        const userLike = response.data.find((like) => like.userId === user?.id);
+        const userLike = response.data.find((like: any) => like.userId === user?.id);
         if (userLike) {
           setLikeId(userLike.id);
           setLiked(true);
@@ -123,7 +122,8 @@ const Post = ({ post, onSwipeLeft, onSwipeRight }) => {
 
   useEffect(() => {
     fetchLikeCount();
-    if (mediaRef.current && "IntersectionObserver" in window) {
+    // intersection observer for autoplay/pause when in view
+    if (typeof window !== "undefined" && "IntersectionObserver" in window) {
       observerRef.current = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
@@ -138,7 +138,10 @@ const Post = ({ post, onSwipeLeft, onSwipeRight }) => {
         },
         { threshold: 0.6 }
       );
-      observerRef.current.observe(mediaRef.current);
+      // observe when mediaRef is set (use timeout to ensure ref assigned)
+      const el = mediaRef.current;
+      if (el) observerRef.current.observe(el);
+
       return () => observerRef.current?.disconnect();
     }
   }, []);
@@ -170,11 +173,11 @@ const Post = ({ post, onSwipeLeft, onSwipeRight }) => {
   // ---------------------- TAP / DOUBLE TAP ----------------------
   const togglePlayPause = () => {
     if (!mediaRef.current) return;
-    if (mediaRef.current.paused) {
-      mediaRef.current.play();
+    if ((mediaRef.current as HTMLMediaElement).paused) {
+      (mediaRef.current as HTMLMediaElement).play();
       isPlaying.current = true;
     } else {
-      mediaRef.current.pause();
+      (mediaRef.current as HTMLMediaElement).pause();
       isPlaying.current = false;
     }
   };
@@ -201,7 +204,9 @@ const Post = ({ post, onSwipeLeft, onSwipeRight }) => {
     lastTapRef.current = now;
   };
 
-  // ---------------------- HORIZONTAL SWIPE ----------------------
+  // ---------------------- HORIZONTAL SWIPE (seek) ----------------------
+  const SEEK_AMOUNT = 5; // seconds skip on swipe
+
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
   };
@@ -212,9 +217,21 @@ const Post = ({ post, onSwipeLeft, onSwipeRight }) => {
 
   const handleTouchEnd = () => {
     const diff = touchStartX.current - touchEndX.current;
+
     if (Math.abs(diff) > SWIPE_THRESHOLD) {
-      if (diff > 0 && onSwipeLeft) onSwipeLeft(post);
-      else if (diff < 0 && onSwipeRight) onSwipeRight(post);
+      const media = videoRef.current || audioRef.current;
+      if (!media) return;
+
+      const mediaEl = media as HTMLMediaElement;
+      if (diff > 0) {
+        // Swipe LEFT → forward
+        const newTime = Math.min(mediaEl.duration || Infinity, mediaEl.currentTime + SEEK_AMOUNT);
+        mediaEl.currentTime = newTime;
+      } else {
+        // Swipe RIGHT → backward
+        const newTime = Math.max(0, mediaEl.currentTime - SEEK_AMOUNT);
+        mediaEl.currentTime = newTime;
+      }
     }
   };
 
@@ -246,17 +263,25 @@ const Post = ({ post, onSwipeLeft, onSwipeRight }) => {
     } catch (err) {}
   };
 
-  // ---------------------- PROGRESS BAR ----------------------
+  // ---------------------- PROGRESS BAR (requestAnimationFrame) ----------------------
   useEffect(() => {
-    if (!mediaRef.current) return;
+    let rafId: number | null = null;
+
     const el = mediaRef.current;
+    if (!el) return;
 
     const updateProgress = () => {
-      progressRef.current = el.currentTime / (el.duration || 1);
+      const mediaEl = el as HTMLMediaElement;
+      progressRef.current = mediaEl.currentTime / (mediaEl.duration || 1);
       setProgress(progressRef.current);
-      requestAnimationFrame(updateProgress);
+      rafId = requestAnimationFrame(updateProgress);
     };
-    updateProgress();
+
+    rafId = requestAnimationFrame(updateProgress);
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, [mediaRef.current]);
 
   // ---------------------- DATE FORMAT ----------------------
@@ -277,7 +302,7 @@ const Post = ({ post, onSwipeLeft, onSwipeRight }) => {
     <div className="mt-10 flex flex-col rounded-sm w-[100vw] max-w-sm overflow-clip relative">
 
       {/* ADMIN DELETE */}
-      {(user.role === "admin" || user.role === "moderator") && (
+      {(user?.role === "admin" || user?.role === "moderator") && (
         <Button variant="destructive" className="ml-2" onClick={handleDelete}>
           Delete
         </Button>
@@ -316,7 +341,7 @@ const Post = ({ post, onSwipeLeft, onSwipeRight }) => {
 
         {(post.type === "video" || post.type === "audio") && (
           <div
-            className="w-full max-w-[360px] relative"
+            className="w-full max-w-[360px] relative bg-black/5"
             onClick={handleTap}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -324,17 +349,29 @@ const Post = ({ post, onSwipeLeft, onSwipeRight }) => {
           >
             {post.type === "video" ? (
               <video
-                ref={videoRef}
+                ref={(el) => {
+                  videoRef.current = el;
+                  mediaRef.current = el;
+                }}
                 src={post.url}
                 className="w-full"
-                controls
+                // controls intentionally removed for Option B (clean UI)
+                // controls
+                playsInline
+                preload="metadata"
+                // disable native controls UI on mobile browsers where possible
+                // we rely on the custom progress bar and gestures
               />
             ) : (
               <audio
-                ref={audioRef}
+                ref={(el) => {
+                  audioRef.current = el;
+                  mediaRef.current = el;
+                }}
                 src={post.url}
-                controls
-                className="w-full"
+                // controls intentionally removed for Option B
+                // controls
+                preload="metadata"
               />
             )}
 
@@ -351,18 +388,17 @@ const Post = ({ post, onSwipeLeft, onSwipeRight }) => {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* PROGRESS BAR - positioned at bottom */}
+            <div className="absolute bottom-0 left-0 w-full h-1 bg-black/20 z-20">
+              <div
+                className="h-full bg-blue-500"
+                style={{ width: `${progress * 100}%` }}
+              />
+            </div>
           </div>
         )}
-
-        {/* PROGRESS BAR */}
-        <div className="absolute top-0 left-0 w-full h-1 bg-black/20 z-20">
-          <div
-            className="h-full bg-blue-500"
-            style={{ width: `${progress * 100}%` }}
-          />
-        </div>
       </div>
-
 
       {/* TEXT */}
       <div className="bg-secondary p-2">
@@ -426,9 +462,10 @@ const Post = ({ post, onSwipeLeft, onSwipeRight }) => {
       {/* LOGIN DIALOG */}
       <Dialog open={openLoginDialog} onOpenChange={setOpenLoginDialog}>
         <DialogContent className="max-w-sm">
-          <DialogHeader>
+          {/* <DialogHeader>
             <DialogTitle className="text-center">Login Required</DialogTitle>
-          </DialogHeader>
+          </DrawerHeader> */}
+          <DialogTitle className="text-center">Login Required</DialogTitle>
           <div className="py-6 flex justify-center">
             <Login />
           </div>

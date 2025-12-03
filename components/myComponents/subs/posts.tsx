@@ -25,7 +25,7 @@ const Posts = ({ page, media = "" }) => {
    -----------------------------------------------------*/
   const sortPosts = (posts, order, mediaId) => {
     // keep stable when media is present and order= random
-    if (mediaId && order === "random") return posts;
+    // if (mediaId && order === "random") return posts;
 
     if (order === "asc") {
       return [...posts].sort(

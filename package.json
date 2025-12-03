@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "workspaces":["./cld/js"],
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "npx prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "cldstart": "node cldindex.js",
+    "cldstart": "node cldindex3.js",
     "cld2start": "node cldindex2.js"
   },
   "packageManager": "npm@10.9.0",

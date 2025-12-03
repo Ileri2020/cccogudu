@@ -23,11 +23,14 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
+import { useSession } from "next-auth/react";
+import { useAppContext } from '@/hooks/useAppContext';
 
 type Post = {
   id: string;
   title: string;
   for?: string;
+  type: string;
 };
 
 const Navbar = (): JSX.Element => {
@@ -36,6 +39,12 @@ const Navbar = (): JSX.Element => {
   const [loading, setLoading] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const {setUser } = useAppContext();
+    const { data: session, status, update } = useSession();
+    if (status === "authenticated") {
+      console.log('navbar session', session)
+      setUser(session.user)
+    }
 
   // Fetch posts from backend
   const fetchPosts = async (search: string) => {
@@ -71,11 +80,6 @@ const Navbar = (): JSX.Element => {
       <div className="sticky top-0 z-30 w-[100vw] overflow-clip flex flex-col m-0 p-0 shadow-md shadow-accent/40">
         <header className="w-[100%] py-4 bg-background sticky top-0 z-10">
           <div className="container mx-auto flex justify-between items-center h-[50px] overflow-clip relative">
-
-            <div className="lg:hidden">
-              <Sidenav />
-            </div>
-
             <Tooltip>
               <TooltipTrigger asChild>
                 <Link
@@ -95,42 +99,39 @@ const Navbar = (): JSX.Element => {
             </Tooltip>
 
             {/* Floating Search Input Dropdown */}
+              <div className="relative w-[230px] md:w-[300px] flex flex-row">
+                <Input
+                  placeholder="Search posts..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  // onFocus={() => setIsFocused(true)}
+                  onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+                  className="flex-1 border-0 dark:border-2 bg-accent/10"
+                />
             <DropdownMenu open={isFocused} onOpenChange={setIsFocused}>
-              
-                <div className="relative w-[300px] lg:flex">
-                  <Input
-                    placeholder="Search posts..."
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    onFocus={() => setIsFocused(true)}
-                    onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-                    className="flex-1 border-0 dark:border-2 bg-accent/10"
-                  />
-                  <DropdownMenuTrigger asChild>
-                    <Button className="absolute right-0 h-full rounded-sm text-background text-xl">
-                      <AiOutlineSearch />
-                    </Button>
-                  </DropdownMenuTrigger>
-                </div>
-              
+              <DropdownMenuTrigger asChild>
+                <Button className="absolute right-0 h-full rounded-sm text-background text-xl">
+                  <AiOutlineSearch />
+                </Button>
+              </DropdownMenuTrigger>
 
               {posts.length > 0 && (
                 <DropdownMenuContent
                   ref={dropdownRef}
-                  className="absolute left-0 top-[calc(100%+5px)] w-full sm:w-[400px] max-h-[400px] overflow-auto shadow-lg bg-background z-50 rounded-md"
+                  className=" w-full max-w-sm max-h-[400px] overflow-auto shadow-lg bg-secondary z-50 rounded-md"
                 >
                   <Table className="w-full text-sm sm:text-base">
                     <TableBody>
                       {posts.map((post) => {
-                        const postUrl = `${process.env.NEXT_PUBLIC_ORIGIN_URL}/blog/${post.id}?page=${post.for || "default"}`;
+                        const postUrl = `/blog/${post.id}?page=${post.for || "default"}`;
                         return (
                           <TableRow key={post.id}>
                             <TableCell className="truncate max-w-[400px] sm:max-w-none">
                               <Link
                                 href={postUrl}
-                                className="underline text-blue-600 hover:text-blue-800 truncate"
+                                className="font-semibold capitalize hover:text-blue-800 truncate"
                               >
-                                {post.title}
+                                {post.title} - {post.type || "general"}
                               </Link>
                             </TableCell>
                           </TableRow>
@@ -141,6 +142,11 @@ const Navbar = (): JSX.Element => {
                 </DropdownMenuContent>
               )}
             </DropdownMenu>
+            </div>
+
+            <div className="lg:hidden">
+              <Sidenav />
+            </div>
 
             <div className="hidden lg:flex items-center gap-8">
               <Nav />

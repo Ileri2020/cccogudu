@@ -9,6 +9,7 @@ cloudinary.config({
   api_secret: 'FaMr1QHVULEUPsb7eMMHkiXDChQ'
 });
 
+// asset_folders, forValue and types, Worshipvid-worshipvideo-video, Praisevid2-praisevideo-video, Praisevid-praisevideo-video, Worshipvid2-worshipvideo-video
 
 const asset_folder = "Worshipvid";
 const ministryId = "684f74ca135dd6d0efeab37d";

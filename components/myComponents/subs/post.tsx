@@ -318,7 +318,7 @@ const Post = ({ post }: any) => {
           <div className="font-semibold">{post.user?.username}</div>
           <div className="text-xs opacity-70">{formatDate(post.updatedAt)}</div>
         </div>
-        <div>
+        <div className="flex flex-col gap-1 mx-2">
           <ShareButton textToCopy={postUrl} />
           {/* DOWNLOAD BUTTON */}
           <a
@@ -326,7 +326,7 @@ const Post = ({ post }: any) => {
             download
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute bottom-3 right-3 bg-black/60 text-white px-3 py-2 rounded-md text-sm"
+            className="bg-black/60 text-white px-2 py-2 rounded-md text-sm"
           >
             <MdOutlineFileDownload />
           </a>

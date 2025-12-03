@@ -27,7 +27,7 @@ interface AppContextProps {
   // user: UserProps;
   // setUser: (user: UserProps) => void;
   user: UserProps;
-  setUser: (user: UserProps) => void;
+  setUser: (user: any) => void;
   isModal: boolean;
   setIsModal: (isModal: boolean) => void;
   useMock: boolean;

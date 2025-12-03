@@ -354,7 +354,7 @@ const Post = ({ post }: any) => {
                   mediaRef.current = el;
                 }}
                 src={post.url}
-                className="w-full"
+                className="w-full min-h-32 bg-secondary"
                 // controls intentionally removed for Option B (clean UI)
                 // controls
                 playsInline

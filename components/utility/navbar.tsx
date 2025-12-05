@@ -39,12 +39,15 @@ const Navbar = (): JSX.Element => {
   const [loading, setLoading] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const {setUser } = useAppContext();
-    const { data: session, status, update } = useSession();
-    if (status === "authenticated") {
-      console.log('navbar session', session)
-      setUser(session.user)
-    }
+  const {setUser, user } = useAppContext();
+  const { data: session, status, update } = useSession();
+  if (status === "authenticated" && user.email === "nil") {
+    console.log('navbar session', session)
+    setUser({
+      ...session.user,
+      avatarUrl: session.user.image
+    });
+  }
 
   // Fetch posts from backend
   const fetchPosts = async (search: string) => {

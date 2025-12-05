@@ -73,7 +73,13 @@ export const ProfileImg = () => {
     pformData.append('for', formData.for)
     
     try {
-      const response = await axios.post(`/api/file/image`, pformData);
+          const response = await axios.post(
+            `/api/dbhandler?model=posts`,
+            pformData,
+            {
+              headers: { "Content-Type": "multipart/form-data" }
+            }
+          );
       if (response.status === 200) {
         const data = response.data;
         // do something with the data
@@ -225,7 +231,14 @@ export const PostButton = () => {
     pformData.append("profileImage", "false")
     
     try {
-      const response = await axios.post(`/api/file/image`, pformData);
+          const response = await axios.post(
+      `/api/dbhandler?model=posts`,
+      pformData,
+      {
+        headers: { "Content-Type": "multipart/form-data" } 
+      }
+    );
+
       if (response.status === 200) {
         const data = response.data;
         // do something with the data
@@ -330,7 +343,7 @@ export const PostButton = () => {
               </div>
             )}
             <div>{user.username}</div>
-            <Input type="file" name='image' id='image' placeholder="Avatar URL" onChange={handleImageChange} />
+            <Input type="file" name="file" id="file" onChange={handleImageChange} placeholder='upload your video, image or files' />
             {isAdminOrModerator && (
               <Input type="text" placeholder="Title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
             )}

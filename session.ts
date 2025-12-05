@@ -3,7 +3,7 @@ import { auth } from "./auth";
 
 export const usersession = async () => {
     const session = await auth();
-    console.log("session from login component",session)
+    // console.log("session from login component",session)
     if (session?.user) {
       return session;
     }

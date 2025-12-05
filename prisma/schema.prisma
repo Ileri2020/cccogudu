@@ -68,8 +68,8 @@ model ContentCategory {
 model User {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   email        String   @unique
-  password     String
-  providerid   String
+  password     String?
+  providerid   String?
   name         String?
   username     String?
   sex          String?
@@ -120,7 +120,7 @@ model Comment {
 //for image, audio and video
 model Post {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  ministryId  String   @db.ObjectId @default("684f74ca135dd6d0efeab37d")
+  ministryId  String?   @db.ObjectId @default("684f74ca135dd6d0efeab37d")
   title       String
   description String?
   for       String?        @default("post")  //event, project, testimony, service, preching
@@ -133,7 +133,7 @@ model Post {
   likes     Like[]
   playlists   Playlist[]  @relation(fields: [playlistsId], references: [id])
   playlistsId   String[]  @db.ObjectId
-  celeastial   Boolean   @default(false)
+  celeastial   Boolean?   @default(false)
   // plays        Int      @default(0)
   // thumbnailUrl String?   
   createdAt   DateTime? @default(now())

@@ -187,167 +187,147 @@ export const ProfileImg = () => {
 
 
 
-
 export const PostButton = () => {
-  const { user, setUser } = useAppContext();
+  const { user } = useAppContext();
   const isAdminOrModerator = user.role === "admin" || user.role === "moderator";
 
-  
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [formData, setFormData] = useState({
-    description: '',
-    type: 'image',
+    description: "",
+    type: "image",
     userId: user.id,
-    title: isAdminOrModerator ? 'Title, Event, etc' : 'post',
-
-    for: 'post',
+    title: isAdminOrModerator ? "Title, Event, etc" : "post",
+    for: "post",
   });
-
-  const [preview, setPreview] = useState(null);
-  const [uploadStatus, setUploadStatus] = useState("");
-  const [file, setFile] = useState(null);
-
 
   const form = useRef<HTMLFormElement>(null);
 
-//   const fetchUsers = async () => {
-//     const res = await axios('/api/dbhandler?model=users');
-//     setUsers(res.data);
-//   };
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
 
+    setFile(selected);
+    setPreview(URL.createObjectURL(selected));
 
-  const handleSubmit = async (e) => {
-    if (user.username === "visitor" && user.email === "nil"){
-      alert("login or create an account to make a post")
-      return
-    }
-    e.preventDefault();
-    const pformData = new FormData();
-    pformData.append("file", file);
-    pformData.append("description", formData.description)
-    pformData.append("type", formData.type)
-    pformData.append("userId", user.id)
-    pformData.append("title", formData.title)
-    pformData.append("for", formData.for)
-    pformData.append("profileImage", "false")
-    
-    try {
-          const response = await axios.post(
-      `/api/dbhandler?model=posts`,
-      pformData,
-      {
-        headers: { "Content-Type": "multipart/form-data" } 
-      }
-    );
-
-      if (response.status === 200) {
-        const data = response.data;
-        // do something with the data
-        console.log(data)
-        // setUser({...user, avatarUrl : data.url});
-      } else {
-        alert("wrong input or connection error")
-      }
-    } catch (error) {
-      // handle error
-      console.error(error);
-    }
-    resetForm();
-    // fetchUsers();
+    const type = selected.type.split("/")[0];
+    setFormData({ ...formData, type });
   };
-
-  // const handleDelete = async (id) => {
-  //   await axios.delete(`/api/dbhandler?model=users&id=${id}`);
-  //   fetchUsers();
-  // };
 
   const resetForm = () => {
-    setPreview(null)
+    setFile(null);
+    setPreview(null);
+    setUploadProgress(0);
     setFormData({
-    description: '',
-    type: 'image',
-    userId: user.id,
-    title: isAdminOrModerator ? 'Title, event, etc' : 'post',
-    for: 'post',
-  });
+      description: "",
+      type: "image",
+      userId: user.id,
+      title: isAdminOrModerator ? "Title, Event, etc" : "post",
+      for: "post",
+    });
   };
 
-  // const handleImageChange = (e) => {
-  //   const selectedFile = e.target.files[0];
-  //   setFile(selectedFile);
-  //   setPreview(URL.createObjectURL(selectedFile));
-  // }
-
-  const handleImageChange = (e) => {
-    const selectedFile = e.target.files[0];
-    setFile(selectedFile);
-    setPreview(URL.createObjectURL(selectedFile));
-  
-    const fileType = selectedFile.type.split('/')[0];
-    switch (fileType) {
-      case 'image':
-        setFormData({ ...formData, type: 'image' });
-        break;
-      case 'video':
-        setFormData({ ...formData, type: 'video' });
-        break;
-      case 'audio':
-        setFormData({ ...formData, type: 'audio' });
-        break;
-      default:
-        setFormData({ ...formData, type: 'document' });
-        break;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!file) return alert("Select a file first");
+    if (user.username === "visitor" && user.email === "nil") {
+      return alert("Login or create an account to make a post");
     }
-  }
-  
-  
 
-  useEffect(() => {
-    // if (file) {
-    //     setPreview(URL.createObjectURL(file))
-    // }
-  }, [preview,]);
+    try {
+      // 1️⃣ Get Cloudinary signature from server
+      const sigRes = await axios.get("/api/cloudinary-signature");
+      const { signature, timestamp, cloudName, apiKey } = sigRes.data;
 
-  
+      // 2️⃣ Prepare FormData for Cloudinary upload
+      const data = new FormData();
+      data.append("file", file);
+      data.append("api_key", apiKey);
+      data.append("timestamp", timestamp);
+      data.append("signature", signature);
+
+      // 3️⃣ Upload to Cloudinary
+      const cloudRes = await axios.post(
+        `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+        data,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+          onUploadProgress: (progressEvent) => {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percent);
+          },
+        }
+      );
+
+      const fileUrl = cloudRes.data.secure_url;
+
+      // 4️⃣ POST to your backend
+      await axios.post(`/api/dbhandler?model=posts`, {
+        ...formData,
+        userId: user.id,
+        url: fileUrl,
+      });
+
+      resetForm();
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Upload failed");
+    }
+  };
 
   return (
-    <div className='z-10 w-full'>
+    <div className="z-10 w-full">
       <Drawer>
         <DrawerTrigger asChild>
-          <button className='w-full h-10 border-2 border-accent flex items-center justify-center gap-2 rounded-full font-bold text-accent text-2xl hover:text-accent hover:bg-accent/40'>
+          <button className="w-full h-10 border-2 border-accent flex items-center justify-center gap-2 rounded-full font-bold text-accent text-2xl hover:text-accent hover:bg-accent/40">
             <BiPlus />
           </button>
         </DrawerTrigger>
 
-        <DrawerContent className='flex flex-col justify-center items-center py-10 /bg-red-500 max-w-5xl mx-auto'>
+        <DrawerContent className="flex flex-col justify-center items-center py-10 max-w-5xl mx-auto">
           <DrawerHeader>
-            <DrawerTitle className='w-full text-center'>
-              {isAdminOrModerator ? 'Create a new content as an Administrator' : 'Create a new post'}
+            <DrawerTitle className="w-full text-center">
+              {isAdminOrModerator
+                ? "Create a new content as an Administrator"
+                : "Create a new post"}
             </DrawerTitle>
             <DrawerDescription></DrawerDescription>
           </DrawerHeader>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-10 bg-secondary rounded-xl max-w-xl">
+
+          <form
+            ref={form}
+            onSubmit={handleSubmit}
+            className="flex flex-col gap-4 p-10 bg-secondary rounded-xl max-w-xl"
+          >
             {preview && (
-              <div style={{ marginTop: '1rem' }}>
-                {formData.type === 'image' && (
-                  <img src={preview} alt="Selected preview" style={{ maxHeight: '300px' }} />
-                )}
-                {formData.type === 'video' && (
-                  <video src={preview} controls style={{ maxHeight: '300px' }} />
-                )}
-                {formData.type === 'audio' && (
-                  <audio src={preview} controls />
-                )}
-                {formData.type === 'document' && (
-                  <p>Selected document: {file.name}</p>
-                )}
+              <div style={{ marginTop: "1rem" }}>
+                {formData.type === "image" && <img src={preview} alt="preview" style={{ maxHeight: 300 }} />}
+                {formData.type === "video" && <video src={preview} controls style={{ maxHeight: 300 }} />}
+                {formData.type === "audio" && <audio src={preview} controls />}
+                {formData.type === "document" && <p>Selected document: {file?.name}</p>}
               </div>
             )}
+
             <div>{user.username}</div>
-            <Input type="file" name="file" id="file" onChange={handleImageChange} placeholder='upload your video, image or files' />
+            <Input type="file" onChange={handleFileChange} />
+
             {isAdminOrModerator && (
-              <Input type="text" placeholder="Title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
+              <Input
+                type="text"
+                placeholder="Title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              />
             )}
-            <Input type="text" placeholder="Description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+
+            <Input
+              type="text"
+              placeholder="Description"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            />
+
             {isAdminOrModerator && (
               <select value={formData.for} onChange={(e) => setFormData({ ...formData, for: e.target.value })}>
                 <option value="event">event</option>
@@ -358,24 +338,36 @@ export const PostButton = () => {
                 <option value="preaching">preaching</option>
               </select>
             )}
+
             <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })}>
               <option value="image">image</option>
               <option value="video">video</option>
               <option value="audio">audio</option>
               <option value="document">document</option>
             </select>
+
+            {uploadProgress > 0 && (
+              <progress value={uploadProgress} max={100}>
+                {uploadProgress}%
+              </progress>
+            )}
+
             <DrawerFooter className="flex flex-row w-full gap-2 mt-2">
-              <DrawerClose className='flex-1' asChild>
-                <Button className='flex-1' variant="outline">Cancel</Button>
+              <DrawerClose className="flex-1" asChild>
+                <Button className="flex-1" variant="outline">
+                  Cancel
+                </Button>
               </DrawerClose>
-              <Button type="submit" className="flex-1 before:ani-shadow w-full">Upload &rarr;</Button>
+              <Button type="submit" className="flex-1 before:ani-shadow w-full">
+                Upload &rarr;
+              </Button>
             </DrawerFooter>
           </form>
         </DrawerContent>
       </Drawer>
     </div>
   );
-}
+};
 
 
 

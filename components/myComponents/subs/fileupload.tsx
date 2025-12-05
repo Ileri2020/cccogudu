@@ -189,17 +189,16 @@ export const ProfileImg = () => {
 
 export const PostButton = () => {
   const { user } = useAppContext();
-  const isAdminOrModerator = user.role === "admin" || user.role === "moderator";
 
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [formData, setFormData] = useState({
+    title: "",
+    for: "post",
     description: "",
     type: "image",
     userId: user.id,
-    title: isAdminOrModerator ? "Title, Event, etc" : "post",
-    for: "post",
   });
 
   const form = useRef<HTMLFormElement>(null);
@@ -220,11 +219,11 @@ export const PostButton = () => {
     setPreview(null);
     setUploadProgress(0);
     setFormData({
+      title: "",
+      for: "post",
       description: "",
       type: "image",
       userId: user.id,
-      title: isAdminOrModerator ? "Title, Event, etc" : "post",
-      for: "post",
     });
   };
 
@@ -236,25 +235,27 @@ export const PostButton = () => {
     }
 
     try {
-      // 1️⃣ Get Cloudinary signature from server
+      // Get Cloudinary signature from server
       const sigRes = await axios.get("/api/cloudinary-signature");
       const { signature, timestamp, cloudName, apiKey } = sigRes.data;
 
-      // 2️⃣ Prepare FormData for Cloudinary upload
+      // Prepare FormData for Cloudinary
       const data = new FormData();
       data.append("file", file);
       data.append("api_key", apiKey);
       data.append("timestamp", timestamp);
       data.append("signature", signature);
 
-      // 3️⃣ Upload to Cloudinary
+      // Upload to Cloudinary
       const cloudRes = await axios.post(
         `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
         data,
         {
           headers: { "Content-Type": "multipart/form-data" },
           onUploadProgress: (progressEvent) => {
-            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            const percent = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
             setUploadProgress(percent);
           },
         }
@@ -262,7 +263,7 @@ export const PostButton = () => {
 
       const fileUrl = cloudRes.data.secure_url;
 
-      // 4️⃣ POST to your backend
+      // POST to backend
       await axios.post(`/api/dbhandler?model=posts`, {
         ...formData,
         userId: user.id,
@@ -288,9 +289,7 @@ export const PostButton = () => {
         <DrawerContent className="flex flex-col justify-center items-center py-10 max-w-5xl mx-auto">
           <DrawerHeader>
             <DrawerTitle className="w-full text-center">
-              {isAdminOrModerator
-                ? "Create a new content as an Administrator"
-                : "Create a new post"}
+              Create a new post
             </DrawerTitle>
             <DrawerDescription></DrawerDescription>
           </DrawerHeader>
@@ -302,49 +301,48 @@ export const PostButton = () => {
           >
             {preview && (
               <div style={{ marginTop: "1rem" }}>
-                {formData.type === "image" && <img src={preview} alt="preview" style={{ maxHeight: 300 }} />}
-                {formData.type === "video" && <video src={preview} controls style={{ maxHeight: 300 }} />}
+                {formData.type === "image" && (
+                  <img src={preview} alt="preview" style={{ maxHeight: 300 }} />
+                )}
+                {formData.type === "video" && (
+                  <video src={preview} controls style={{ maxHeight: 300 }} />
+                )}
                 {formData.type === "audio" && <audio src={preview} controls />}
                 {formData.type === "document" && <p>Selected document: {file?.name}</p>}
               </div>
             )}
 
             <div>{user.username}</div>
+
             <Input type="file" onChange={handleFileChange} />
 
-            {isAdminOrModerator && (
-              <Input
-                type="text"
-                placeholder="Title"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              />
-            )}
+            {/* Title input */}
+            <Input
+              type="text"
+              placeholder="Title"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            />
 
+            {/* 'For' select input */}
+            <select
+              value={formData.for}
+              onChange={(e) => setFormData({ ...formData, for: e.target.value })}
+            >
+              <option value="praisevideo">praisevid</option>
+              <option value="worshipvideo">worshipvid</option>
+              <option value="post">post</option>
+              <option value="event">post</option>
+              <option value="project">post</option>
+            </select>
+
+            {/* Description input */}
             <Input
               type="text"
               placeholder="Description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             />
-
-            {isAdminOrModerator && (
-              <select value={formData.for} onChange={(e) => setFormData({ ...formData, for: e.target.value })}>
-                <option value="event">event</option>
-                <option value="project">project</option>
-                <option value="testimony">testimony</option>
-                <option value="post">post</option>
-                <option value="service">service</option>
-                <option value="preaching">preaching</option>
-              </select>
-            )}
-
-            <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })}>
-              <option value="image">image</option>
-              <option value="video">video</option>
-              <option value="audio">audio</option>
-              <option value="document">document</option>
-            </select>
 
             {uploadProgress > 0 && (
               <progress value={uploadProgress} max={100}>
@@ -368,6 +366,7 @@ export const PostButton = () => {
     </div>
   );
 };
+
 
 
 

@@ -54,17 +54,44 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_ID,
       clientSecret: process.env.GOOGLE_SECRET,
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture?.replace(/=s\d+(-c)?$/, "=s360-c"), // Higher resolution
+        };
+      },
     }),
+    // Facebook provider with high-res picture
+    {
+      id: "facebook",
+      name: "Facebook",
+      type: "oauth",
+      authorization: "https://www.facebook.com/v11.0/dialog/oauth?scope=email,public_profile",
+      token: "https://graph.facebook.com/v11.0/oauth/access_token",
+      userinfo: "https://graph.facebook.com/me?fields=id,name,email,picture.width(360).height(360)",
+      clientId: process.env.FACEBOOK_ID,
+      clientSecret: process.env.FACEBOOK_SECRET,
+      profile(profile) {
+        return {
+          id: profile.id,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture?.data?.url,
+        };
+      },
+    },
   ],
 
   callbacks: {
     async signIn({ user, account }) {
-      if (account?.provider === "google") {
+      if (account?.provider === "google" || account?.provider === "facebook") {
         try {
           const email = user.email;
           const name = user.name;
-          const googleId = user.id;
-          const avatarUrl = user.image?.replace(/=s\d+(-c)?$/, "=s500-c") ?? null;
+          const providerId = user.id;
+          const providerAvatar = user.image;
 
           let existingUser = await prisma.user.findUnique({ where: { email } });
 
@@ -73,13 +100,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               data: {
                 email,
                 name,
-                username: name.replace(/\s+/g, "").toLowerCase(),
-                avatarUrl,
+                username: name.replace(/\s+/g, "").toLowerCase() + Math.floor(Math.random() * 1000),
+                avatarUrl: providerAvatar,
                 role: "user",
                 department: "none",
-                providerid: await bcrypt.hash(googleId, parseInt(process.env.SALT_ROUNDS)),
+                providerid: await bcrypt.hash(providerId, parseInt(process.env.SALT_ROUNDS || "10")),
               },
             });
+          } else {
+            // If already has avatar, check if it's a google one and fix resolution if needed
+            if (existingUser.avatarUrl && existingUser.avatarUrl.includes("googleusercontent.com")) {
+              existingUser.avatarUrl = existingUser.avatarUrl.replace(/=s\d+(-c)?$/, "=s360-c");
+            }
           }
 
           user.id = existingUser.id;
@@ -87,12 +119,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user.role = existingUser.role;
           user.department = existingUser.department;
           user.contact = existingUser.contact;
-          user.avatarUrl = existingUser.avatarUrl;
+          // Priority: Existing user avatar (if any) > provider avatar
+          user.avatarUrl = existingUser.avatarUrl || providerAvatar;
           user.sex = existingUser.sex;
 
           return true;
         } catch (err) {
-          console.error("Google signIn error:", err);
+          console.error("OAuth signIn error:", err);
           return false;
         }
       }

@@ -71,9 +71,13 @@ const Posts = ({ page, media = "" }) => {
       let posts = response.data;
 
       // Filter by page and content type
-      posts = posts.filter(
-        (post) => post.for === page && postTypes[post.type]
-      );
+      if (page === "unverified") {
+        posts = posts.filter(post => post.isVerified === false && postTypes[post.type]);
+      } else {
+        posts = posts.filter(
+          (post) => post.for === page && postTypes[post.type] && (post.isVerified !== false)
+        );
+      }
 
       // Sort
       posts = sortPosts(posts, sortOrder, media);

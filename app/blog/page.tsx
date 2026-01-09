@@ -8,7 +8,7 @@ import { useAppContext } from '@/hooks/useAppContext'
 import { PostButton } from '@/components/myComponents/subs/fileupload'
 
 const Blog = () => {
-  const { selectedVideo, setSelectedVideo, useMock } = useAppContext();
+  const { selectedVideo, setSelectedVideo, useMock, user } = useAppContext();
 
   const [initialTab, setInitialTab] = useState("praisevideo");  // default
 
@@ -33,6 +33,9 @@ const Blog = () => {
         <TabsTrigger value="post" className='rounded-full flex-1'>Posts</TabsTrigger>
         <TabsTrigger value="event" className='rounded-full flex-1'>Event</TabsTrigger>
         <TabsTrigger value="project" className='rounded-full flex-1'>Projects</TabsTrigger>
+        {user?.role === "admin" && (
+          <TabsTrigger value="unverified" className='rounded-full flex-1 bg-yellow-500/10 text-yellow-600 border-yellow-500/30'>Unverified</TabsTrigger>
+        )}
         <PostButton />
       </TabsList>
 
@@ -56,6 +59,12 @@ const Blog = () => {
         <TabsContent value="project" className="w-full">
           <Posts page="project" />
         </TabsContent>
+
+        {user?.role === "admin" && (
+          <TabsContent value="unverified" className="w-full">
+            <Posts page="unverified" />
+          </TabsContent>
+        )}
       </ScrollArea>
     </Tabs>
   )

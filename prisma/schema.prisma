@@ -29,7 +29,7 @@ model Ministry {
 
 model Billboard {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  ministryId   String   @db.ObjectId @default("684f74ca135dd6d0efeab37d")
+  ministryId   String   @default("684f74ca135dd6d0efeab37d") @db.ObjectId
   departmentId String   @db.ObjectId
   userId       String   @db.ObjectId
   label        String
@@ -52,7 +52,7 @@ enum ContentCategoryType {
 
 model ContentCategory {
   id         String              @id @default(auto()) @map("_id") @db.ObjectId
-  ministryId String              @db.ObjectId @default("684f74ca135dd6d0efeab37d")
+  ministryId String              @default("684f74ca135dd6d0efeab37d") @db.ObjectId
   // store        String        @db.ObjectId //@relation("StoreToCategory", fields: [storeId], references: [id])
   // billboardId  String       @db.ObjectId
   // billboard    Json    //@relation(fields: [billboardId], references: [id])
@@ -66,30 +66,29 @@ model ContentCategory {
 }
 
 model User {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  email        String   @unique
-  password     String?
-  providerid   String?
-  name         String?
-  username     String?
-  sex          String?
-  contact      String?
-  avatarUrl    String?    
-  department   String?
-  role         String   @default("user")
-  ministryId   String   @db.ObjectId @default("684f74ca135dd6d0efeab37d")
+  id         String  @id @default(auto()) @map("_id") @db.ObjectId
+  email      String  @unique
+  password   String?
+  providerid String?
+  name       String?
+  username   String?
+  sex        String?
+  contact    String?
+  avatarUrl  String?
+  department String?
+  role       String  @default("user")
+  ministryId String  @default("684f74ca135dd6d0efeab37d") @db.ObjectId
 
-  posts       Post[]
-  likes       Like[]
-  comments    Comment[]
-  playlists   Playlist[]
-  meeting     Meeting[]
-  bibleEntries Bible[]  // 🔥 Added
+  posts        Post[]
+  likes        Like[]
+  comments     Comment[]
+  playlists    Playlist[]
+  meeting      Meeting[]
+  bibleEntries Bible[] // 🔥 Added
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
-
 
 model Department {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -103,13 +102,13 @@ model Department {
 
 model Comment {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  ministryId String?   @db.ObjectId @default("684f74ca135dd6d0efeab37d")
-  content     Post    @relation(fields: [contentId], references: [id])
+  ministryId String?  @default("684f74ca135dd6d0efeab37d") @db.ObjectId
+  content    Post     @relation(fields: [contentId], references: [id])
   contentId  String   @db.ObjectId
-  user      User    @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
   userId     String   @db.ObjectId
-  username     String
-  comment  String?
+  username   String
+  comment    String?
   isArchived Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -119,44 +118,41 @@ model Comment {
 
 //for image, audio and video
 model Post {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  ministryId  String?   @db.ObjectId @default("684f74ca135dd6d0efeab37d")
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  ministryId  String?    @default("684f74ca135dd6d0efeab37d") @db.ObjectId
   title       String
   description String?
-  for       String?        @default("post")  //event, project, testimony, service, preching
-  url    String // URL to the image hosted somewhere
-  type String
-  user  User?    @relation(fields: [userId], references: [id])
-  userId     String   @db.ObjectId
-  duration    String?  @default("nill") // e.g., "5:30" (MM:SS)
+  for         String?    @default("post") //event, project, testimony, service, preching
+  url         String // URL to the image hosted somewhere
+  type        String
+  user        User?      @relation(fields: [userId], references: [id])
+  userId      String     @db.ObjectId
+  duration    String?    @default("nill") // e.g., "5:30" (MM:SS)
   comments    Comment[]
-  likes     Like[]
-  playlists   Playlist[]  @relation(fields: [playlistsId], references: [id])
-  playlistsId   String[]  @db.ObjectId
-  celeastial   Boolean?   @default(false)
+  likes       Like[]
+  playlists   Playlist[] @relation(fields: [playlistsId], references: [id])
+  playlistsId String[]   @db.ObjectId
+  celeastial  Boolean?   @default(false)
+  isVerified  Boolean?   @default(true)
   // plays        Int      @default(0)
   // thumbnailUrl String?   
-  createdAt   DateTime? @default(now())
-  updatedAt   DateTime? @updatedAt
+  createdAt   DateTime?  @default(now())
+  updatedAt   DateTime?  @updatedAt
 
   // @@index([productId])
 }
 
-
-
 model Like {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  ministryId String?   @db.ObjectId @default("684f74ca135dd6d0efeab37d")
-  content     Post    @relation(fields: [contentId], references: [id])
+  ministryId String?  @default("684f74ca135dd6d0efeab37d") @db.ObjectId
+  content    Post     @relation(fields: [contentId], references: [id])
   contentId  String   @db.ObjectId
-  user      User    @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
   userId     String   @db.ObjectId
   // isArchived   Boolean      @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
-
-
 
 //model Book {
 //  id         String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -171,13 +167,13 @@ model Like {
 //}
 
 model Bible {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  verse     String
-  page      String
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  verse String
+  page  String
 
   /// Relation to User
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String   @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @db.ObjectId
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -185,30 +181,59 @@ model Bible {
   //makesure users can add their best bible verse
 }
 
+model PageVisit {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  day       DateTime // Truncated to YYYY-MM-DD
+  browserId String // Unique identifier for the browser
+  count     Int      @default(1)
 
-model Playlist {
-  id    String  @id @default(auto())  @map("_id") @db.ObjectId
-  user    User  @relation(fields: [userId], references: [id])
-  userId  String  @db.ObjectId
-  posts   Post[]    @relation(fields: [postsId],  references: [id])
-  postsId   String[]    @db.ObjectId
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  @@unique([day, browserId])
 }
 
+model ChurchSection {
+  id        String         @id @default(auto()) @map("_id") @db.ObjectId
+  name      String // e.g. "Shepherds", "Assistant Shepherds", "Parochial Committee"
+  order     Int            @default(0)
+  members   ChurchMember[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model ChurchMember {
+  id         String        @id @default(auto()) @map("_id") @db.ObjectId
+  sectionId  String        @db.ObjectId
+  section    ChurchSection @relation(fields: [sectionId], references: [id])
+  name       String
+  position   String? // e.g. "Assistant Shepherd"
+  pictureUrl String?
+  year       String // To handle yearly positions (e.g. "2024-2025")
+  isCurrent  Boolean       @default(true) // Helper to easily filter current
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+}
+
+model Playlist {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  posts     Post[]   @relation(fields: [postsId], references: [id])
+  postsId   String[] @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
 
 model Meeting {
-  id  String  @id @default(auto())  @map("_id") @db.ObjectId
-  admin   User  @relation(fields: [adminId], references: [id])
-  adminId   String  @db.ObjectId
-  roomName    String
-  description   String?
-  roomId      String  @unique
-  save      Boolean @default(false)
-  dateTime    DateTime
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  roomPassword  String?
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  admin        User     @relation(fields: [adminId], references: [id])
+  adminId      String   @db.ObjectId
+  roomName     String
+  description  String?
+  roomId       String   @unique
+  save         Boolean  @default(false)
+  dateTime     DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  roomPassword String?
 }
 
 //  $ prisma [command]

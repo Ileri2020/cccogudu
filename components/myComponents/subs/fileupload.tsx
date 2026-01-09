@@ -329,11 +329,12 @@ export const PostButton = () => {
               value={formData.for}
               onChange={(e) => setFormData({ ...formData, for: e.target.value })}
             >
-              <option value="praisevideo">praisevid</option>
-              <option value="worshipvideo">worshipvid</option>
+              <option value="praisevideo">Praise Video</option>
+              <option value="worshipvideo">Worship Video</option>
               <option value="post">post</option>
-              <option value="event">post</option>
-              <option value="project">post</option>
+              <option value="event">Event</option>
+              <option value="project">Projects</option>
+              <option value="service">Service</option>
             </select>
 
             {/* Description input */}

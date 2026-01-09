@@ -9,6 +9,7 @@ import { AppContextProvider } from "@/context/appContext";
 import { Footer3 } from "@/components/myComponents/subs/footer3";
 import { SessionProvider } from "next-auth/react"
 import { usersession } from "@/session";
+import { PageVisitTracker } from "@/components/utility/page-visit-tracker";
 // import { getSession } from "next-auth/react";
 // import {Roboto} from "next/font/google"
 
@@ -93,6 +94,7 @@ export default async function RootLayout({
                   enableSystem
                   disableTransitionOnChange
                 >
+                  <PageVisitTracker />
                   <Navbar />
                   {children}
                   <Footer3 className="mt-2" />

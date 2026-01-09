@@ -106,6 +106,9 @@ export const modelMap: Record<string, any> = {
   bible: prisma.bible,
   meetings: prisma.meeting,
   playlists: prisma.playlist,
+  pagevisits: prisma.pageVisit,
+  churchsections: prisma.churchSection,
+  churchmembers: prisma.churchMember,
 };
 
 /**
@@ -115,6 +118,14 @@ export const modelMap: Record<string, any> = {
  * NOTE: Adjust selects/includes if you want to limit fields.
  */
 export const modelIncludes: Record<string, any> = {
+  churchsections: {
+    members: {
+      orderBy: { year: "desc" },
+    },
+  },
+  churchmembers: {
+    section: true,
+  },
   ministries: {
     // no relations declared in schema with explicit Prisma relation fields
     // add relations here if you add them to schema later

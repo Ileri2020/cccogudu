@@ -6,8 +6,61 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Post from '@/components/myComponents/subs/post';
 import { PostButton } from '@/components/myComponents/subs/fileupload';
+import { useAppContext } from '@/hooks/useAppContext';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+
+const YouTubeServiceForm = ({ onUploadSuccess, userId }) => {
+  const [title, setTitle] = useState('');
+  const [url, setUrl] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!title || !url) return toast.error('Please fill all fields');
+    setLoading(true);
+    try {
+      await axios.post('/api/dbhandler?model=posts', {
+        title,
+        url,
+        type: 'video',
+        for: 'service', // Using 'service' for YouTube videos specifically as per Post component logic
+        userId: userId,
+      });
+      toast.success('YouTube service added successfully');
+      setTitle('');
+      setUrl('');
+      onUploadSuccess();
+    } catch (error) {
+       toast.error('Failed to add service');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="p-4 border rounded-lg bg-secondary/20 mb-6 space-y-3 max-w-sm mx-auto">
+      <h3 className="font-bold text-center">Add YouTube Service</h3>
+      <Input 
+        placeholder="Service Title (e.g. Sunday Service)" 
+        value={title} 
+        onChange={(e) => setTitle(e.target.value)} 
+      />
+      <Input 
+        placeholder="YouTube Link (https://...)" 
+        value={url} 
+        onChange={(e) => setUrl(e.target.value)} 
+      />
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? 'Adding...' : 'Add Service'}
+      </Button>
+    </form>
+  );
+};
 
 const Preaching = () => {
+  const { user } = useAppContext();
   const [allpost, setallpost] = useState(null);
   const [sortOrder, setSortOrder] = useState('desc');
   const [postTypes, setPostTypes] = useState({ video: true, audio: true, document: true, });
@@ -16,7 +69,7 @@ const Preaching = () => {
     axios.get('/api/dbhandler', { params: { model: 'posts', } })
       .then(response => {
         const posts = response.data;
-        let filteredPosts = posts.filter(post => post.for === 'preaching' && (postTypes[post.type] || (post.type === 'image' && postTypes.document)));
+        let filteredPosts = posts.filter(post => (post.for === 'preaching' || post.for === 'service') && (postTypes[post.type] || (post.type === 'image' && postTypes.document)));
         filteredPosts = filteredPosts.sort((a, b) => sortOrder === 'asc' ? new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime() : new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
         setallpost(filteredPosts);
       })
@@ -58,6 +111,7 @@ const Preaching = () => {
 
   return (
     <div>
+      {user?.role === 'admin' && <YouTubeServiceForm userId={user.id} onUploadSuccess={fetchallpost} />}
       <Tabs defaultValue="audio" className="flex flex-col lg:flex-row gap-[60px] my-5">
         <TabsList className="flex flex-row lg:flex-col w-full max-w-[380px] lg:max-w-[280px] xl:max-w-[340px] max-h-[177px] mx-auto /xl:mx-0 gap-1 ">
           <TabsTrigger value="audio" className='rounded-full flex-1'>Audios</TabsTrigger>

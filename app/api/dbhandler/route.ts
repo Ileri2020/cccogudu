@@ -3,6 +3,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma, modelMap, modelIncludes, extractRequestData, handleUploadFile, hashPasswordIfUser, parseId } from "./db-utils";
+import { auth } from "@/auth";
 
 /**
  * Helper: Get include object for model (or undefined)
@@ -62,6 +63,15 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" } as any,
     });
 
+    // If model is posts, filter out unverified posts for non-admins
+    if (modelName === "posts") {
+      const session = await auth();
+      const isAdmin = (session?.user as any)?.role === "admin";
+      if (!isAdmin) {
+        return NextResponse.json(items.filter((p: any) => p.isVerified !== false));
+      }
+    }
+
     return NextResponse.json(items);
   } catch (error: any) {
     console.error("GET error:", error);
@@ -95,7 +105,32 @@ export async function POST(req: NextRequest) {
     console.log("POST data:", data, "files:", files, "isForm:", isForm);
 
     //------------------------------------------------------------------
-    // 1. HANDLE FILE UPLOADS (CLOUDINARY)
+    // 1. HANDLE PROFILE IMAGE SKIP LOGIC
+    //------------------------------------------------------------------
+    if (modelName === "posts" && (data.profileImage === true || data.profileImage === "true")) {
+      // If it's a profile image update, we skip post creation and update user instead
+      let avatarUrl = data.url;
+
+      // Handle file upload if present in files instead of data
+      if (isForm && files && ((files as any).file || (files as any).image)) {
+        const fileArr = (files as any).file || (files as any).image;
+        if (fileArr && fileArr[0]) {
+          avatarUrl = await handleUploadFile(fileArr[0]);
+        }
+      }
+
+      if (!data.userId) return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+
+      const updatedUser = await prisma.user.update({
+        where: { id: parseId(data.userId) },
+        data: { avatarUrl },
+      });
+
+      return NextResponse.json({ success: true, message: "Profile image updated", url: avatarUrl, user: updatedUser });
+    }
+
+    //------------------------------------------------------------------
+    // 2. HANDLE FILE UPLOADS (CLOUDINARY)
     //------------------------------------------------------------------
     if (isForm && files && Object.keys(files).length > 0) {
       const fileFieldMapping: Record<string, string> = {
@@ -108,6 +143,8 @@ export async function POST(req: NextRequest) {
         avatar: "avatarUrl",
         avatarUrl: "avatarUrl",
         imgUrl: "imgUrl",
+        picture: "pictureUrl",
+        pictureUrl: "pictureUrl",
       };
 
       for (const key of Object.keys(files)) {
@@ -130,12 +167,12 @@ export async function POST(req: NextRequest) {
     }
 
     //------------------------------------------------------------------
-    // 2. HASH PASSWORD IF USER MODEL
+    // 3. HASH PASSWORD IF USER MODEL
     //------------------------------------------------------------------
     await hashPasswordIfUser(modelName, data);
 
     //------------------------------------------------------------------
-    // 3. PARSE ANY FIELD ENDING WITH "Id"
+    // 4. PARSE ANY FIELD ENDING WITH "Id"
     //------------------------------------------------------------------
     for (const key of Object.keys(data)) {
       if (key.endsWith("Id")) {
@@ -143,10 +180,24 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    //------------------------------------------------------------------
+    // 5. POST VERIFICATION LOGIC
+    //------------------------------------------------------------------
+    if (modelName === "posts") {
+      const session = await auth();
+      const isAdmin = (session?.user as any)?.role === "admin";
+      // If not admin, new posts are unverified
+      if (!isAdmin) {
+        data.isVerified = false;
+      } else {
+        data.isVerified = true;
+      }
+    }
+
     console.log("Creating new", modelName, "with data:", data);
 
     //------------------------------------------------------------------
-    // 4. CREATE THE RECORD
+    // 6. CREATE THE RECORD
     //------------------------------------------------------------------
     const createdItem = await prismaModel.create({ data });
 
@@ -200,6 +251,8 @@ export async function PUT(req: NextRequest) {
         image: modelName === "department" ? "imgUrl" : "imageUrl",
         imageUrl: "imageUrl",
         imgUrl: "imgUrl",
+        picture: "pictureUrl",
+        pictureUrl: "pictureUrl",
       };
 
       for (const key of Object.keys(files)) {

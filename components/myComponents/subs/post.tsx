@@ -12,17 +12,23 @@ import {
   DrawerFooter,
   DrawerClose
 } from "@/components/ui/drawer";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import TextArea from "@/components/textArea";
 import axios from "axios";
 import { useAppContext } from "@/hooks/useAppContext";
-import { Skeleton } from "@/components/ui/skeleton";
-import Login from "@/components/myComponents/subs/login";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaCopy, FaRegCopy } from "react-icons/fa";
 import { MdOutlineFileDownload } from "react-icons/md";
 
-// ---------------------- COMMENTS COMPONENT ----------------------
+
+
+
+
+
+import { Skeleton } from "@/components/ui/skeleton";
+import Login from "@/components/myComponents/subs/login";
+
+
 const Comments = ({ videoId, reload }: { videoId: string; reload: boolean }) => {
   const { comments, setComments } = useAppContext();
   const [loading, setLoading] = useState(true);
@@ -68,7 +74,6 @@ const Comments = ({ videoId, reload }: { videoId: string; reload: boolean }) => 
   );
 };
 
-// ---------------------- MAIN POST COMPONENT ----------------------
 const Post = ({ post }: any) => {
   const { user } = useAppContext();
   const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement | null>(null);
@@ -81,28 +86,21 @@ const Post = ({ post }: any) => {
   const [comment, setComment] = useState("");
   const [reload, setReload] = useState(false);
   const [openDrawer, setOpenDrawer] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [openLoginDialog, setOpenLoginDialog] = useState(false);
-
-  // Double tap & tap state
+  const [showHeart, setShowHeart] = useState(false);
   const lastTapRef = useRef(0);
   const tapTimeoutRef = useRef<any>(null);
-  const [showHeart, setShowHeart] = useState(false);
-
-  // Horizontal swipe
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
   const SWIPE_THRESHOLD = 50;
-
-  // Progress bar
   const [progress, setProgress] = useState(0);
   const progressRef = useRef<number>(0);
-
-  const postUrl = `${process.env.NEXT_PUBLIC_ORIGIN_URL}/blog/${post.id}?page=${post.for}`;
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // ---------------------- LIKE FETCH ----------------------
+  const postUrl = `${process.env.NEXT_PUBLIC_ORIGIN_URL}/blog/${post.id}?page=${post.for}`;
+
+  // ---------------------- FETCH LIKE COUNT ----------------------
   const fetchLikeCount = async () => {
     try {
       const response = await axios.get(`/api/dbhandler?model=likes&id=${post.id}`);
@@ -122,7 +120,7 @@ const Post = ({ post }: any) => {
 
   useEffect(() => {
     fetchLikeCount();
-    // intersection observer for autoplay/pause when in view
+
     if (typeof window !== "undefined" && "IntersectionObserver" in window) {
       observerRef.current = new IntersectionObserver(
         (entries) => {
@@ -138,15 +136,12 @@ const Post = ({ post }: any) => {
         },
         { threshold: 0.6 }
       );
-      // observe when mediaRef is set (use timeout to ensure ref assigned)
       const el = mediaRef.current;
       if (el) observerRef.current.observe(el);
-
       return () => observerRef.current?.disconnect();
     }
   }, []);
 
-  // ---------------------- LIKE ACTION ----------------------
   const handleLike = async () => {
     if (!user || user.username === "visitor") {
       setOpenLoginDialog(true);
@@ -170,7 +165,6 @@ const Post = ({ post }: any) => {
     } catch (err) {}
   };
 
-  // ---------------------- TAP / DOUBLE TAP ----------------------
   const togglePlayPause = () => {
     if (!mediaRef.current) return;
     if ((mediaRef.current as HTMLMediaElement).paused) {
@@ -204,9 +198,6 @@ const Post = ({ post }: any) => {
     lastTapRef.current = now;
   };
 
-  // ---------------------- HORIZONTAL SWIPE (seek) ----------------------
-  const SEEK_AMOUNT = 5; // seconds skip on swipe
-
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
   };
@@ -217,25 +208,18 @@ const Post = ({ post }: any) => {
 
   const handleTouchEnd = () => {
     const diff = touchStartX.current - touchEndX.current;
-
     if (Math.abs(diff) > SWIPE_THRESHOLD) {
       const media = videoRef.current || audioRef.current;
       if (!media) return;
-
       const mediaEl = media as HTMLMediaElement;
       if (diff > 0) {
-        // Swipe LEFT → forward
-        const newTime = Math.min(mediaEl.duration || Infinity, mediaEl.currentTime + SEEK_AMOUNT);
-        mediaEl.currentTime = newTime;
+        mediaEl.currentTime = Math.min(mediaEl.duration || Infinity, mediaEl.currentTime + 5);
       } else {
-        // Swipe RIGHT → backward
-        const newTime = Math.max(0, mediaEl.currentTime - SEEK_AMOUNT);
-        mediaEl.currentTime = newTime;
+        mediaEl.currentTime = Math.max(0, mediaEl.currentTime - 5);
       }
     }
   };
 
-  // ---------------------- COMMENT ----------------------
   const saveComment = async () => {
     if (!user || user.username === "visitor") {
       setOpenLoginDialog(true);
@@ -255,18 +239,47 @@ const Post = ({ post }: any) => {
     } catch (err) {}
   };
 
-  // ---------------------- DELETE ----------------------
   const handleDelete = async () => {
+    if (!confirm("Are you sure you want to delete this post?")) return;
     try {
       await axios.delete(`/api/dbhandler?model=posts&id=${post.id}`);
       alert("Post deleted");
+      window.location.reload();
     } catch (err) {}
   };
 
-  // ---------------------- PROGRESS BAR (requestAnimationFrame) ----------------------
+  const handleVerify = async () => {
+    try {
+      await axios.put(`/api/dbhandler?model=posts&id=${post.id}`, {
+        isVerified: true
+      });
+      alert("Post approved!");
+      window.location.reload();
+    } catch (err) {
+      alert("Failed to approve post");
+    }
+  };
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({
+    title: post.title,
+    description: post.description,
+    for: post.for,
+  });
+
+  const handleEditSave = async () => {
+    try {
+      await axios.put(`/api/dbhandler?model=posts&id=${post.id}`, editData);
+      alert("Post updated!");
+      setIsEditing(false);
+      window.location.reload();
+    } catch (err) {
+      alert("Failed to update post");
+    }
+  };
+
   useEffect(() => {
     let rafId: number | null = null;
-
     const el = mediaRef.current;
     if (!el) return;
 
@@ -278,13 +291,9 @@ const Post = ({ post }: any) => {
     };
 
     rafId = requestAnimationFrame(updateProgress);
-
-    return () => {
-      if (rafId) cancelAnimationFrame(rafId);
-    };
+    return () => { if (rafId) cancelAnimationFrame(rafId); };
   }, [mediaRef.current]);
 
-  // ---------------------- DATE FORMAT ----------------------
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -298,17 +307,11 @@ const Post = ({ post }: any) => {
     return "just now";
   };
 
+  // ---------------------- RENDER ----------------------
   return (
     <div className="mt-10 flex flex-col rounded-sm w-[100vw] max-w-sm overflow-clip relative">
+      {/* Admin actions (Delete moved down) */}
 
-      {/* ADMIN DELETE */}
-      {(user?.role === "admin" || user?.role === "moderator") && (
-        <Button variant="destructive" className="ml-2" onClick={handleDelete}>
-          Delete
-        </Button>
-      )}
-
-      {/* USER ROW */}
       <div className="w-full flex flex-row items-center px-2 mb-2">
         <img
           src={post?.user?.avatarUrl ?? "https://res.cloudinary.com/dc5khnuiu/image/upload/v1752627019/uxokaq0djttd7gsslwj9.png"}
@@ -320,7 +323,6 @@ const Post = ({ post }: any) => {
         </div>
         <div className="flex flex-col gap-1 mx-2">
           <ShareButton textToCopy={postUrl} />
-          {/* DOWNLOAD BUTTON */}
           <a
             href={post.url}
             download
@@ -333,13 +335,34 @@ const Post = ({ post }: any) => {
         </div>
       </div>
 
+      {user?.role === "admin" && post.isVerified === false && (
+        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-2 text-xs mb-2 flex justify-between items-center mx-2 rounded">
+          <span>Unverified Post</span>
+          <Button size="sm" onClick={handleVerify} className="h-6 bg-yellow-600 hover:bg-yellow-700">Approve</Button>
+        </div>
+      )}
+
+      {user?.role === "admin" && (
+        <div className="flex gap-2 mx-2 mb-2">
+          <Button size="sm" variant="outline" onClick={() => setIsEditing(true)} className="flex-1 h-7 text-xs">Edit Post</Button>
+          <Button size="sm" variant="destructive" onClick={handleDelete} className="flex-1 h-7 text-xs">Delete Post</Button>
+        </div>
+      )}
+
       {/* MEDIA */}
       <div className="relative w-full flex justify-center">
-        {post.type === "image" && (
+        {post.for === "service" && post.url?.includes("youtube") ? (
+          <iframe
+            className="w-full max-w-[360px] aspect-video"
+            src={post.url.replace("watch?v=", "embed/")}
+            title={post.title || "YouTube video"}
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          ></iframe>
+        ) : post.type === "image" ? (
           <img src={post.url} className="w-full max-w-[360px]" />
-        )}
-
-        {(post.type === "video" || post.type === "audio") && (
+        ) : (post.type === "video" || post.type === "audio") && (
           <div
             className="w-full max-w-[360px] relative bg-black/5"
             onClick={handleTap}
@@ -355,12 +378,8 @@ const Post = ({ post }: any) => {
                 }}
                 src={post.url}
                 className="w-full min-h-32 bg-secondary"
-                // controls intentionally removed for Option B (clean UI)
-                // controls
                 playsInline
                 preload="metadata"
-                // disable native controls UI on mobile browsers where possible
-                // we rely on the custom progress bar and gestures
               />
             ) : (
               <audio
@@ -369,13 +388,10 @@ const Post = ({ post }: any) => {
                   mediaRef.current = el;
                 }}
                 src={post.url}
-                // controls intentionally removed for Option B
-                // controls
                 preload="metadata"
               />
             )}
 
-            {/* HEART ANIMATION */}
             <AnimatePresence>
               {showHeart && (
                 <motion.div
@@ -389,7 +405,6 @@ const Post = ({ post }: any) => {
               )}
             </AnimatePresence>
 
-            {/* PROGRESS BAR - positioned at bottom */}
             <div className="absolute bottom-0 left-0 w-full h-1 bg-black/20 z-20">
               <div
                 className="h-full bg-blue-500"
@@ -409,7 +424,6 @@ const Post = ({ post }: any) => {
           {likeCount} <BiSolidLike />
         </div>
 
-        {/* ACTION BUTTONS */}
         <div className="flex gap-2 mt-1">
           <Button
             className={`flex-1 text-2xl ${liked ? "bg-blue-500 text-white" : ""}`}
@@ -459,15 +473,53 @@ const Post = ({ post }: any) => {
         </div>
       </div>
 
-      {/* LOGIN DIALOG */}
       <Dialog open={openLoginDialog} onOpenChange={setOpenLoginDialog}>
         <DialogContent className="max-w-sm">
-          {/* <DialogHeader>
-            <DialogTitle className="text-center">Login Required</DialogTitle>
-          </DrawerHeader> */}
           <DialogTitle className="text-center">Login Required</DialogTitle>
           <div className="py-6 flex justify-center">
             <Login />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditing} onOpenChange={setIsEditing}>
+        <DialogContent className="max-w-md">
+          <DialogTitle>Edit Post Parameters</DialogTitle>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Title</label>
+              <TextArea 
+                value={editData.title} 
+                onChange={(e) => setEditData({...editData, title: e.target.value})}
+                className="h-10"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Description</label>
+              <TextArea 
+                value={editData.description} 
+                onChange={(e) => setEditData({...editData, description: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Category (For)</label>
+              <select
+                className="w-full p-2 border rounded bg-background"
+                value={editData.for}
+                onChange={(e) => setEditData({...editData, for: e.target.value})}
+              >
+                <option value="praisevideo">Praise Video</option>
+                <option value="worshipvideo">Worship Video</option>
+                <option value="post">Post</option>
+                <option value="event">Event</option>
+                <option value="project">Project</option>
+                <option value="service">Service</option>
+              </select>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={() => setIsEditing(false)} variant="outline" className="flex-1">Cancel</Button>
+              <Button onClick={handleEditSave} className="flex-1 bg-accent">Save Changes</Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

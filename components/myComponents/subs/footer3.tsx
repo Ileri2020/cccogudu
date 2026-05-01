@@ -1,7 +1,7 @@
 import { Facebook, Github, Instagram, Linkedin, Twitter } from "lucide-react";
 import Link from "next/link";
 
-import { SEO_CONFIG } from "../../../app/layout";
+import { SEO_CONFIG } from "@/lib/config";
 import { cn } from "@/lib/utils"
 // import { Button } from "~/ui/primitives/button";
 import { Button } from "@/components/ui/button";

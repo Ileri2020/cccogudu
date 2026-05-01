@@ -3,7 +3,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma, modelMap, modelIncludes, extractRequestData, handleUploadFile, hashPasswordIfUser, parseId } from "./db-utils";
-import { auth } from "@/auth";
+import { getAuthSession, isAdminSession } from "../auth/auth-utils";
 
 /**
  * Helper: Get include object for model (or undefined)
@@ -12,6 +12,14 @@ function getIncludeFor(modelName: string) {
   return modelIncludes[modelName] && Object.keys(modelIncludes[modelName]).length > 0
     ? modelIncludes[modelName]
     : undefined;
+}
+
+function parseQueryValue(value: string) {
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  const numberValue = Number(value);
+  if (!Number.isNaN(numberValue) && value.trim() !== '') return numberValue;
+  return value;
 }
 
 /**
@@ -47,6 +55,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(item);
     }
 
+    const forParam = searchParams.get("for");
+    const typeParam = searchParams.get("type");
+    const isVerifiedParam = searchParams.get("isVerified");
+    const pageParam = searchParams.get("page");
+    const limitParam = searchParams.get("limit");
+
     // Posts search special case
     if (modelName === "posts" && search) {
       const items = await prisma.post.findMany({
@@ -57,21 +71,56 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(items);
     }
 
-    // List
-    const items = await prismaModel.findMany({
-      include,
-      orderBy: { createdAt: "desc" } as any,
-    });
-
-    // If model is posts, filter out unverified posts for non-admins
-    if (modelName === "posts") {
-      const session = await auth();
-      const isAdmin = (session?.user as any)?.role === "admin";
-      if (!isAdmin) {
-        return NextResponse.json(items.filter((p: any) => p.isVerified !== false));
+    const where: any = {};
+    if (forParam) {
+      where.for = forParam;
+    }
+    if (typeParam) {
+      where.type = typeParam;
+    }
+    if (isVerifiedParam !== null) {
+      if (isVerifiedParam === "true") {
+        where.isVerified = true;
+      } else if (isVerifiedParam === "false") {
+        where.isVerified = false;
       }
     }
 
+    for (const [key, value] of searchParams.entries()) {
+      if (["model", "id", "search", "for", "type", "isVerified", "admin", "page", "limit"].includes(key)) {
+        continue;
+      }
+      where[key] = parseQueryValue(value);
+    }
+
+    const session = getAuthSession(req);
+    const isAdmin = isAdminSession(req);
+
+    // If model is posts, filter out unverified posts for non-admins
+    if (modelName === "posts" && !isAdmin) {
+      if (isVerifiedParam === "false") {
+        return NextResponse.json([]);
+      }
+      return NextResponse.json((await prismaModel.findMany({
+        where,
+        include,
+        orderBy: { createdAt: "desc" } as any,
+      })).filter((p: any) => p.isVerified !== false));
+    }
+
+    const page = Number(pageParam || 1);
+    const limit = Number(limitParam || 0);
+    const findArgs: any = {
+      where,
+      include,
+      orderBy: { createdAt: "desc" } as any,
+    };
+    if (limit > 0) {
+      findArgs.take = limit;
+      findArgs.skip = page > 1 ? (page - 1) * limit : 0;
+    }
+
+    const items = await prismaModel.findMany(findArgs);
     return NextResponse.json(items);
   } catch (error: any) {
     console.error("GET error:", error);
@@ -101,6 +150,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid model" }, { status: 400 });
 
     const { data, files, isForm } = await extractRequestData(req);
+    const session = getAuthSession(req);
+    const authRequiredModels = ["posts", "likes", "comments"];
+
+    if (authRequiredModels.includes(modelName) && !session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (session && authRequiredModels.includes(modelName)) {
+      data.userId = parseId(session.id);
+    }
 
     console.log("POST data:", data, "files:", files, "isForm:", isForm);
 
@@ -119,7 +178,13 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      if (!data.userId) return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+      if (!data.userId) {
+        if (session?.id) {
+          data.userId = parseId(session.id);
+        } else {
+          return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+        }
+      }
 
       const updatedUser = await prisma.user.update({
         where: { id: parseId(data.userId) },
@@ -184,14 +249,9 @@ export async function POST(req: NextRequest) {
     // 5. POST VERIFICATION LOGIC
     //------------------------------------------------------------------
     if (modelName === "posts") {
-      const session = await auth();
-      const isAdmin = (session?.user as any)?.role === "admin";
+      const isAdmin = session?.role === "admin";
       // If not admin, new posts are unverified
-      if (!isAdmin) {
-        data.isVerified = false;
-      } else {
-        data.isVerified = true;
-      }
+      data.isVerified = isAdmin ? true : false;
     }
 
     console.log("Creating new", modelName, "with data:", data);
@@ -231,6 +291,11 @@ export async function PUT(req: NextRequest) {
     if (!prismaModel) return NextResponse.json({ error: "Invalid model" }, { status: 400 });
 
     const { data, files, isForm } = await extractRequestData(req);
+    const session = getAuthSession(req);
+    const authRequiredModels = ["posts", "likes", "comments"];
+    if (authRequiredModels.includes(modelName) && !session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     // Determine id: prefer query param, then body.id
     const id = parseId(idQuery ?? data?.id ?? null);
@@ -300,6 +365,12 @@ export async function DELETE(req: NextRequest) {
 
     if (!modelName) return NextResponse.json({ error: "Missing model" }, { status: 400 });
     if (!idParam) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+
+    const authRequiredModels = ["posts", "likes", "comments"];
+    const session = getAuthSession(req);
+    if (authRequiredModels.includes(modelName) && !session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const prismaModel = modelMap[modelName];
     if (!prismaModel) return NextResponse.json({ error: "Invalid model" }, { status: 400 });

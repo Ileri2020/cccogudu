@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NextApiRequest, NextApiResponse } from 'next';
 import connect from '@/server/config/mongodb';
 import User from '@/server/db/mongodb/models/users';

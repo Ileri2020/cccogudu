@@ -2,7 +2,9 @@
   "name": "my-app",
   "version": "0.1.0",
   "private": true,
-  "workspaces":["./cld/js"],
+  "workspaces": [
+    "./cld/js"
+  ],
   "type": "module",
   "scripts": {
     "dev": "next dev",
@@ -103,9 +105,12 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
+    "@types/multer": "^2.1.0",
+    "@types/mysql": "^2.15.27",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/streamifier": "^0.1.2",
     "eslint": "^8",
     "eslint-config-next": "15.0.2",
     "postcss": "^8",

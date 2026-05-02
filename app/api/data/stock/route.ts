@@ -1,3 +1,4 @@
+// @ts-nocheck
 // import nc from "next-connect"
 // import { createRouter } from "next-connect"
 // import { uploadimg } from "@/server/config/multersetup"

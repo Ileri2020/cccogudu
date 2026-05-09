@@ -18,7 +18,28 @@ import { toast } from "sonner"
 import axios from "axios"
 import React, { useState, useEffect } from "react"
 
-const AdminHierarchyForms = ({ onUpdate, sections, selectedSection, setSelectedSection }) => {
+interface Member {
+  id: string;
+  name: string;
+  position: string;
+  year: string;
+  pictureUrl?: string;
+}
+
+interface SectionData {
+  id: string;
+  name: string;
+  members: Member[];
+}
+
+interface AdminHierarchyFormsProps {
+  onUpdate: () => void;
+  sections: SectionData[];
+  selectedSection: string;
+  setSelectedSection: (id: string) => void;
+}
+
+const AdminHierarchyForms = ({ onUpdate, sections, selectedSection, setSelectedSection }: AdminHierarchyFormsProps) => {
   const [name, setName] = useState("");
   const [sectionName, setSectionName] = useState("");
   const [position, setPosition] = useState("");
@@ -113,7 +134,7 @@ const AdminHierarchyForms = ({ onUpdate, sections, selectedSection, setSelectedS
 
 const About = () => {
   const { user } = useAppContext();
-  const [sections, setSections] = useState<any[]>([]);
+  const [sections, setSections] = useState<SectionData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSection, setSelectedSection] = useState("");
 
@@ -132,7 +153,7 @@ const About = () => {
     fetchSections();
   }, []);
 
-  const handleDeleteSection = async (id) => {
+  const handleDeleteSection = async (id: string) => {
     if (!confirm("Delete this group and all its members?")) return;
     try {
       await axios.delete(`/api/dbhandler?model=churchsections&id=${id}`);
@@ -141,7 +162,7 @@ const About = () => {
     } catch (e) { toast.error("Failed to delete section"); }
   };
 
-  const handleDeleteMember = async (id) => {
+  const handleDeleteMember = async (id: string) => {
     if (!confirm("Delete this member?")) return;
     try {
       await axios.delete(`/api/dbhandler?model=churchmembers&id=${id}`);
@@ -209,11 +230,11 @@ const About = () => {
         <div className="text-center py-20 text-xl font-bold opacity-50">Loading Church Hierarchy...</div>
       ) : (
         sections.map((section) => {
-          const availableYears = section.members.map((m: any) => m.year);
+          const availableYears = section.members.map((m) => m.year);
           // For string years like "2024-2025", we sort them lexically or by the first 4 chars
-          const sortedYears = [...availableYears].sort((a, b) => b.localeCompare(a));
+          const sortedYears = [...new Set(availableYears)].sort((a, b) => b.localeCompare(a));
           const maxYear = sortedYears[0];
-          const latestMembers = section.members.filter((m: any) => m.year === maxYear);
+          const latestMembers = section.members.filter((m) => m.year === maxYear);
 
           if (latestMembers.length === 0 && user?.role !== 'admin') return null;
 
@@ -240,7 +261,7 @@ const About = () => {
 
               <ScrollArea className="h-auto w-full self-center px-4">
                 <div className="flex flex-wrap justify-center gap-6 pb-6">
-                  {latestMembers.map((member: any, index: number) => (
+                  {latestMembers.map((member, index) => (
                     <div key={member.id || index} className="w-[170px] md:w-[220px] relative group/member">
                       <ProfileCardTransparentBG
                         name={member.name}

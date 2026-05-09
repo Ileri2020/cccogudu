@@ -1,8 +1,8 @@
-// @ts-nocheck
+// auth.ts
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
-import bcrypt, { compare } from "bcryptjs";
+import bcrypt, { compare } from "bcrypt";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -17,8 +17,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       authorize: async (credentials) => {
-        const email = credentials?.email;
-        const password = credentials?.password;
+        const email = credentials?.email as string;
+        const password = credentials?.password as string;
 
         if (!email || !password) {
           throw new Error("Please provide both email & password");
@@ -73,7 +73,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       userinfo: "https://graph.facebook.com/me?fields=id,name,email,picture.width(360).height(360)",
       clientId: process.env.FACEBOOK_ID,
       clientSecret: process.env.FACEBOOK_SECRET,
-      profile(profile) {
+      profile(profile: any) {
         return {
           id: profile.id,
           name: profile.name,
@@ -81,7 +81,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           image: profile.picture?.data?.url,
         };
       },
-    },
+    } as any,
   ],
 
   callbacks: {
@@ -92,6 +92,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const name = user.name;
           const providerId = user.id;
           const providerAvatar = user.image;
+
+          if (!email || !name || !providerId) return false;
 
           let existingUser = await prisma.user.findUnique({ where: { email } });
 
@@ -136,7 +138,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
+        token.id = user.id as string;
         token.username = user.username;
         token.role = user.role;
         token.department = user.department;
@@ -147,15 +149,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
 
-    async session({ session, token }) {
-      session.user.id = token.id;
-      session.user.username = token.username;
-      session.user.role = token.role;
-      session.user.department = token.department;
-      session.user.contact = token.contact;
-      session.user.avatarUrl = token.avatarUrl;
-      session.user.sex = token.sex;
-
+    async session({ session, token }: { session: any, token: any }) {
+      if (session.user) {
+        session.user.id = token.id;
+        session.user.username = token.username;
+        session.user.role = token.role;
+        session.user.department = token.department;
+        session.user.contact = token.contact;
+        session.user.avatarUrl = token.avatarUrl;
+        session.user.sex = token.sex;
+      }
       return session;
     },
   },

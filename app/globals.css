@@ -65,6 +65,38 @@ body {
   }
 }
 
+@keyframes blog-category-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.blog-category-marquee {
+  overflow: hidden;
+  width: 100%;
+  padding: 0.5rem 3.5rem 0.5rem 0.75rem;
+  -webkit-mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+}
+
+.blog-category-track {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  gap: 0.625rem;
+  animation: blog-category-marquee 32s linear infinite;
+}
+
+.blog-category-marquee:hover .blog-category-track,
+.blog-category-marquee:focus-within .blog-category-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blog-category-track {
+    animation: none;
+  }
+}
+
 
 
 @font-face {

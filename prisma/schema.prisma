@@ -122,7 +122,7 @@ model Post {
   ministryId  String?    @default("684f74ca135dd6d0efeab37d") @db.ObjectId
   title       String
   description String?
-  for         String?    @default("post") //event, project, testimony, service, preching
+  for         String[]   @default(["post"]) // e.g. ["worship", "ccc"]
   url         String // URL to the image hosted somewhere
   type        String
   user        User?      @relation(fields: [userId], references: [id])

@@ -8,11 +8,17 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "npx prisma generate && next build",
-    "start": "next start",
+    "build": "node scripts/build-production.js",
+    "start": "node scripts/start-production.js",
     "lint": "next lint",
     "cldstart": "node cldindex3.js",
-    "cld2start": "node cldindex2.js"
+    "cld2start": "node cldindex2.js",
+    "export:cloudinary-videos": "node scripts/export-cloudinary-videos.js",
+    "replace:videos-from-export": "node scripts/replace-videos-from-export.js",
+    "normalize:post-categories": "node scripts/normalize-post-categories.js"
+  },
+  "engines": {
+    "node": "24.x"
   },
   "packageManager": "npm@10.9.0",
   "overrides": {

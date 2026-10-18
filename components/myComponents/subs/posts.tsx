@@ -5,9 +5,10 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import axios from "axios";
 import Post from "./post";
 
-const Posts = ({ page, media = "" }) => {
+const Posts = ({ page, media = "", category = "" }) => {
   const [allPosts, setAllPosts] = useState([]);
   const [displayedPosts, setDisplayedPosts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [sortOrder, setSortOrder] = useState("random");
   const [postTypes, setPostTypes] = useState({
     video: true,
@@ -19,6 +20,7 @@ const Posts = ({ page, media = "" }) => {
   const currentChunkRef = useRef(0);
   const loadMoreRef = useRef(null);
   const observerRef = useRef(null);
+  const feedRef = useRef(null);
 
   /** ----------------------------------------------------
    *  SORT POSTS (Stable, respects media priority)
@@ -73,9 +75,14 @@ const Posts = ({ page, media = "" }) => {
       // Filter by page and content type
       if (page === "unverified") {
         posts = posts.filter(post => post.isVerified === false && postTypes[post.type]);
-      } else {
+      } else if (page === "media") {
         posts = posts.filter(
-          (post) => post.for === page && postTypes[post.type] && (post.isVerified !== false)
+          (post) => post.for?.includes(category) && postTypes[post.type] && (post.isVerified !== false)
+        );
+      } else {
+        const requestedFor = page === "praisevideo" ? "praise" : page === "worshipvideo" ? "worship" : page;
+        posts = posts.filter(
+          (post) => post.for?.includes(requestedFor) && postTypes[post.type] && (post.isVerified !== false)
         );
       }
 
@@ -92,8 +99,12 @@ const Posts = ({ page, media = "" }) => {
       setDisplayedPosts(posts.slice(0, postsPerChunk));
     } catch (error) {
       console.error(error);
+      setAllPosts([]);
+      setDisplayedPosts([]);
+    } finally {
+      setIsLoading(false);
     }
-  }, [page, sortOrder, postTypes, media]);
+  }, [page, sortOrder, postTypes, media, category]);
 
   /** ----------------------------------------------------
    *  LOAD MORE POSTS
@@ -121,7 +132,7 @@ const Posts = ({ page, media = "" }) => {
       (entries) => {
         if (entries[0].isIntersecting) loadMore();
       },
-      { rootMargin: "120px" }
+      { root: page === "media" ? feedRef.current : null, rootMargin: "120px" }
     );
 
     if (loadMoreRef.current) {
@@ -129,7 +140,7 @@ const Posts = ({ page, media = "" }) => {
     }
 
     return () => observerRef.current?.disconnect();
-  }, [allPosts]);
+  }, [allPosts, page]);
 
   /** ----------------------------------------------------
    *  FETCH POSTS WHEN SETTINGS CHANGE
@@ -146,15 +157,20 @@ const Posts = ({ page, media = "" }) => {
     setPostTypes((prev) => ({ ...prev, [e.target.name]: e.target.checked }));
   };
 
-  if (!allPosts.length) return <div>Loading...</div>;
+  if (isLoading) return <div className="flex min-h-40 items-center justify-center text-muted-foreground">Loading...</div>;
 
   /** ----------------------------------------------------
    *  UI
    -----------------------------------------------------*/
   return (
-    <div className="flex flex-col w-fit mx-auto">
+    <div
+      ref={page === "media" ? feedRef : undefined}
+      className={page === "media"
+        ? "mx-auto h-[calc(100dvh-150px)] w-full snap-y snap-mandatory overflow-y-auto overscroll-contain md:h-auto md:snap-none md:overflow-visible"
+        : "mx-auto flex w-fit flex-col"}
+    >
       {/* Controls */}
-      <div className="flex flex-row justify-between mb-4">
+      <div className={`mb-4 flex flex-row justify-between ${page === "media" ? "hidden md:flex" : ""}`}>
         <select value={sortOrder} onChange={handleSortChange}>
           <option value="random">Random</option>
           <option value="asc">Asc</option>
@@ -179,12 +195,14 @@ const Posts = ({ page, media = "" }) => {
       {/* Posts */}
       {displayedPosts.length > 0 ? (
         displayedPosts.map((post, index) => (
-          <div key={post.id}>
-            <Post post={{ ...post, index }} />
+          <div key={post.id} className={page === "media" ? "h-[calc(100dvh-150px)] w-full snap-start snap-always md:h-auto md:w-auto md:snap-none" : ""}>
+            <Post post={{ ...post, index }} mobileFeed={page === "media"} />
           </div>
         ))
       ) : (
-        <div>No {page}s available.</div>
+        <div className="flex min-h-48 items-center justify-center text-center text-muted-foreground">
+          No {category || page} posts available yet.
+        </div>
       )}
 
       {/* Infinite scroll trigger */}

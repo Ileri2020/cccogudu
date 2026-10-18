@@ -38,8 +38,14 @@ export default deletemanypost
 
 export const createManyPosts = async (posts = posttocreate) => {
     try {
+            const normalizedPosts = posts.map((post) => ({
+                ...post,
+                for: Array.isArray(post.for)
+                    ? post.for
+                    : [post.for === "praisevideo" ? "praise" : post.for === "worshipvideo" ? "worship" : post.for],
+            }));
       const createdPosts = await prisma.post.createMany({
-        data: posts,
+                data: normalizedPosts,
       });
       console.log('many post created', createdPosts)
       return

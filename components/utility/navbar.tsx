@@ -127,7 +127,7 @@ const Navbar = (): JSX.Element => {
                   <Table className="w-full text-sm sm:text-base">
                     <TableBody>
                       {posts.map((post) => {
-                        const postUrl = `/blog/${post.id}?page=${post.for || "default"}`;
+                        const postUrl = `/blog/${post.id}?page=${post.for?.[0] || "default"}`;
                         return (
                           <TableRow key={post.id}>
                             <TableCell className="truncate max-w-[400px] sm:max-w-none">

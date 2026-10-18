@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
 
     const where: any = {};
     if (forParam) {
-      where.for = forParam;
+      where.for = { has: forParam };
     }
     if (typeParam) {
       where.type = typeParam;
@@ -249,6 +249,8 @@ export async function POST(req: NextRequest) {
     // 5. POST VERIFICATION LOGIC
     //------------------------------------------------------------------
     if (modelName === "posts") {
+      if (typeof data.for === "string") data.for = [data.for];
+      if (!Array.isArray(data.for)) data.for = ["post"];
       const isAdmin = session?.role === "admin";
       // If not admin, new posts are unverified
       data.isVerified = isAdmin ? true : false;
@@ -340,6 +342,10 @@ export async function PUT(req: NextRequest) {
     Object.keys(data).forEach((k) => {
       if (k.endsWith("Id")) data[k] = parseId(data[k]);
     });
+
+    if (modelName === "posts" && typeof data.for === "string") {
+      data.for = [data.for];
+    }
 
     const updated = await prismaModel.update({
       where: { id },

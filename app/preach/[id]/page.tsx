@@ -70,7 +70,7 @@ const Preaching = () => {
     axios.get('/api/dbhandler', { params: { model: 'posts', } })
       .then(response => {
         const posts = response.data;
-        let filteredPosts = posts.filter(post => (post.for === 'preaching' || post.for === 'service') && (postTypes[post.type] || (post.type === 'image' && postTypes.document)));
+        let filteredPosts = posts.filter(post => (post.for?.includes('preaching') || post.for?.includes('service')) && (postTypes[post.type] || (post.type === 'image' && postTypes.document)));
         filteredPosts = filteredPosts.sort((a, b) => sortOrder === 'asc' ? new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime() : new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
         setallpost(filteredPosts);
       })

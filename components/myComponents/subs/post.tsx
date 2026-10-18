@@ -74,7 +74,7 @@ const Comments = ({ videoId, reload }: { videoId: string; reload: boolean }) => 
   );
 };
 
-const Post = ({ post }: any) => {
+const Post = ({ post, mobileFeed = false }: any) => {
   const { user } = useAppContext();
   const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -98,7 +98,7 @@ const Post = ({ post }: any) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const postUrl = `${process.env.NEXT_PUBLIC_ORIGIN_URL}/blog/${post.id}?page=${post.for}`;
+  const postUrl = `${process.env.NEXT_PUBLIC_ORIGIN_URL}/blog/${post.id}?page=${post.for?.[0] || "post"}`;
 
   // ---------------------- FETCH LIKE COUNT ----------------------
   const fetchLikeCount = async () => {
@@ -309,10 +309,14 @@ const Post = ({ post }: any) => {
 
   // ---------------------- RENDER ----------------------
   return (
-    <div className="mt-10 flex flex-col rounded-sm w-[100vw] max-w-sm overflow-clip relative">
+    <div className={mobileFeed
+      ? "relative flex h-full min-h-0 w-full max-w-none flex-col overflow-hidden bg-black text-white md:mt-10 md:h-auto md:w-[100vw] md:max-w-sm md:rounded-sm md:bg-background md:text-foreground"
+      : "mt-10 flex flex-col rounded-sm w-[100vw] max-w-sm overflow-clip relative"}>
       {/* Admin actions (Delete moved down) */}
 
-      <div className="w-full flex flex-row items-center px-2 mb-2">
+      <div className={mobileFeed
+        ? "absolute inset-x-0 top-0 z-20 mb-0 flex w-full flex-row items-center bg-gradient-to-b from-black/75 to-transparent px-4 pb-8 pt-[max(env(safe-area-inset-top),1rem)] md:relative md:inset-auto md:z-auto md:mb-2 md:bg-transparent md:p-0"
+        : "w-full flex flex-row items-center px-2 mb-2"}>
         <img
           src={post?.user?.avatarUrl ?? "https://res.cloudinary.com/dc5khnuiu/image/upload/v1752627019/uxokaq0djttd7gsslwj9.png"}
           className="w-10 h-10 rounded-full"
@@ -350,10 +354,14 @@ const Post = ({ post }: any) => {
       )}
 
       {/* MEDIA */}
-      <div className="relative w-full flex justify-center">
-        {post.for === "service" && post.url?.includes("youtube") ? (
+      <div className={mobileFeed
+        ? "absolute inset-0 z-0 flex h-full w-full items-center justify-center md:relative md:inset-auto md:z-auto md:h-auto md:w-full"
+        : "relative w-full flex justify-center"}>
+        {post.for?.includes("service") && post.url?.includes("youtube") ? (
           <iframe
-            className="w-full max-w-[360px] aspect-video"
+            className={mobileFeed
+              ? "h-full w-full max-w-none md:aspect-video md:h-auto md:max-w-[360px]"
+              : "w-full max-w-[360px] aspect-video"}
             src={post.url.replace("watch?v=", "embed/")}
             title={post.title || "YouTube video"}
             frameBorder="0"
@@ -361,10 +369,17 @@ const Post = ({ post }: any) => {
             allowFullScreen
           ></iframe>
         ) : post.type === "image" ? (
-          <img src={post.url} className="w-full max-w-[360px]" />
+          <img
+            src={post.url}
+            className={mobileFeed
+              ? "h-full w-full max-w-none object-cover md:h-auto md:max-w-[360px] md:object-contain"
+              : "w-full max-w-[360px]"}
+          />
         ) : (post.type === "video" || post.type === "audio") && (
           <div
-            className="w-full max-w-[360px] relative bg-black/5"
+            className={mobileFeed
+              ? "absolute inset-0 h-full w-full max-w-none bg-black md:relative md:inset-auto md:h-auto md:max-w-[360px] md:bg-black/5"
+              : "w-full max-w-[360px] relative bg-black/5"}
             onClick={handleTap}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -377,7 +392,9 @@ const Post = ({ post }: any) => {
                   mediaRef.current = el;
                 }}
                 src={post.url}
-                className="w-full min-h-32 bg-secondary"
+                className={mobileFeed
+                  ? "h-full w-full bg-black object-cover md:min-h-32 md:bg-secondary md:object-contain"
+                  : "w-full min-h-32 bg-secondary"}
                 playsInline
                 preload="metadata"
               />
@@ -416,8 +433,10 @@ const Post = ({ post }: any) => {
       </div>
 
       {/* TEXT */}
-      <div className="bg-secondary p-2">
-        {post.for !== "post" && <div className="font-semibold text-lg">{post.title}</div>}
+      <div className={mobileFeed
+        ? "absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black via-black/80 to-transparent p-4 pb-[max(env(safe-area-inset-bottom),1rem)] md:relative md:inset-auto md:bg-secondary md:p-2"
+        : "bg-secondary p-2"}>
+        {post.for?.some((category: string) => category !== "post") && <div className="font-semibold text-lg">{post.title}</div>}
         <div>{post.post}</div>
 
         <div className="flex items-center gap-2 mt-2">

@@ -12,3 +12,5 @@ export const Signup = dynamic(()=>import("./signup"), { ssr: false, })
 export const Stocks = dynamic(()=>import("./stocks"), { ssr: false, }) 
 export const Footer = dynamic(()=>import("./footer"), { ssr: false, }) 
 export const CartItems = dynamic(()=>import("./cartitem"), { ssr: false, }) 
+export const Music = dynamic(()=>import("./music"), { ssr: false, })
+ 

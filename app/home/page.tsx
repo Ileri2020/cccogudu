@@ -20,7 +20,8 @@ import Post from "@/components/myComponents/subs/post";
 import Posts from "@/components/myComponents/subs/posts";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import Link from "next/link"
+import Link from "next/link";
+import Music from "@/components/sub/music";
 
 
 const Home = () => {
@@ -113,6 +114,9 @@ const Home = () => {
             />
           </div>
       </section>
+
+      {/* Minimized Docked Player that can be maximized to cover the whole screen */}
+      <Music defaultMinimized={true} fullscreenOnMaximize={true} />
     </motion.section>
   )
 }

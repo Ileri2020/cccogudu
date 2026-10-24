@@ -19,6 +19,7 @@ import { useAppContext } from "@/hooks/useAppContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaCopy, FaRegCopy } from "react-icons/fa";
 import { MdOutlineFileDownload } from "react-icons/md";
+import { Volume2, VolumeX, Rocket } from "lucide-react";
 
 
 
@@ -97,6 +98,50 @@ const Post = ({ post, mobileFeed = false }: any) => {
   const progressRef = useRef<number>(0);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const gainNodeRef = useRef<GainNode | null>(null);
+  const [volumeBoost, setVolumeBoost] = useState<number>(1.5); // 1.5x app volume boost
+  const [isAudioMuted, setIsAudioMuted] = useState<boolean>(false);
+
+  const setupAudioBoost = (el: HTMLMediaElement) => {
+    if (!el || typeof window === "undefined") return;
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!audioContextRef.current) {
+        audioContextRef.current = new AudioCtx();
+      }
+      if (audioContextRef.current.state === "suspended") {
+        audioContextRef.current.resume();
+      }
+      if (!gainNodeRef.current) {
+        const gain = audioContextRef.current.createGain();
+        gain.gain.setValueAtTime(isAudioMuted ? 0 : volumeBoost, audioContextRef.current.currentTime);
+        gainNodeRef.current = gain;
+        const source = audioContextRef.current.createMediaElementSource(el);
+        source.connect(gain);
+        gain.connect(audioContextRef.current.destination);
+      }
+    } catch (e) {
+      // Element already connected or fallback
+    }
+  };
+
+  const toggleVolumeBoost = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const el = (videoRef.current || audioRef.current) as HTMLMediaElement;
+    if (el) setupAudioBoost(el);
+    if (volumeBoost >= 1.45) {
+      setVolumeBoost(1.0);
+      if (gainNodeRef.current && audioContextRef.current) {
+        gainNodeRef.current.gain.setTargetAtTime(1.0, audioContextRef.current.currentTime, 0.05);
+      }
+    } else {
+      setVolumeBoost(1.5);
+      if (gainNodeRef.current && audioContextRef.current) {
+        gainNodeRef.current.gain.setTargetAtTime(1.5, audioContextRef.current.currentTime, 0.05);
+      }
+    }
+  };
 
   const postUrl = `${process.env.NEXT_PUBLIC_ORIGIN_URL}/blog/${post.id}?page=${post.for?.[0] || "post"}`;
 
@@ -397,6 +442,10 @@ const Post = ({ post, mobileFeed = false }: any) => {
                   : "w-full min-h-32 bg-secondary"}
                 playsInline
                 preload="metadata"
+                crossOrigin="anonymous"
+                onPlay={() => {
+                  if (videoRef.current) setupAudioBoost(videoRef.current);
+                }}
               />
             ) : (
               <audio
@@ -406,8 +455,27 @@ const Post = ({ post, mobileFeed = false }: any) => {
                 }}
                 src={post.url}
                 preload="metadata"
+                crossOrigin="anonymous"
+                onPlay={() => {
+                  if (audioRef.current) setupAudioBoost(audioRef.current);
+                }}
               />
             )}
+
+            {/* 1.5x Volume Boost Overlay Button */}
+            <button
+              type="button"
+              onClick={toggleVolumeBoost}
+              className={`absolute top-2 right-2 z-20 flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold backdrop-blur-md transition-all shadow-md ${
+                volumeBoost > 1.0
+                  ? "bg-amber-500/95 text-black shadow-amber-500/30 scale-105 animate-pulse"
+                  : "bg-black/60 text-white/90 border border-white/20 hover:bg-black/80"
+              }`}
+              title="Toggle 1.5x App Volume Boost"
+            >
+              <Volume2 className="w-3.5 h-3.5" />
+              <span>{volumeBoost > 1.0 ? "1.5x Boost" : "1.0x Vol"}</span>
+            </button>
 
             <AnimatePresence>
               {showHeart && (

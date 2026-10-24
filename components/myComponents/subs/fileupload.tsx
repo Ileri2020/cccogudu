@@ -204,6 +204,15 @@ export const PostButton: React.FC<PostButtonProps> = ({
   onPostSuccess,
 }) => {
   const { user } = useAppContext();
+  const isLoggedIn = Boolean(
+    user &&
+    user.id &&
+    user.id !== "nil" &&
+    user.username !== "visitor" &&
+    user.email !== "nil"
+  );
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);

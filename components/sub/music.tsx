@@ -207,10 +207,10 @@ const DEFAULT_TRACKS: MediaTrack[] = [
     id: "cld-hymn-1",
     title: "Olore - Celestial Hymn 420",
     artist: "CCC Ogudu Youth Fellowship",
-    category: "hymn",
+    category: "ccc",
     videoUrl: "https://res.cloudinary.com/drgpl4vsj/video/upload/v1756847202/olore_dzeew9.mp4",
     audioUrl: transformToCloudinaryAudio("https://res.cloudinary.com/drgpl4vsj/video/upload/v1756847202/olore_dzeew9.mp4"),
-    thumbnailUrl: transformToCloudinaryThumbnail("https://res.cloudinary.com/drgpl4vsj/video/upload/v1756847202/olore_dzeew9.mp4"),
+    thumbnailUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80",
     duration: 245,
     likes: 610,
     comments: [
@@ -356,6 +356,15 @@ export const Music: React.FC<MusicProps> = ({
   const filteredTracks = useMemo(() => {
     if (!selectedCategory || selectedCategory === "all") return cloudinaryTracks;
     const cat = selectedCategory.toLowerCase().replace("video", "").trim();
+
+    // Specific match for CCC Heritage playlist
+    if (cat === "ccc" || cat === "heritage") {
+      const results = cloudinaryTracks.filter((t) => {
+        const trackCat = t.category.toLowerCase();
+        return trackCat === "ccc" || trackCat.includes("ccc") || trackCat.includes("heritage");
+      });
+      if (results.length > 0) return results;
+    }
 
     // Specific match for CCC Hymns playlist
     if (cat === "ccc hymns" || cat === "ccchymns" || cat === "ccc-hymns" || cat === "hymn" || cat === "hymns") {

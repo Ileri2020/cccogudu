@@ -112,59 +112,64 @@ export const TextCarousel: React.FC<TextCarouselProps> = ({
 
   return (
     <div 
-      className={`relative w-full max-w-lg h-[420px] mx-auto flex items-center justify-center select-none overflow-visible ${className}`}
+      className={`relative w-full max-w-[100vw] h-[420px] mx-auto flex items-center justify-center select-none overflow-visible ${className}`}
       style={{
         transformStyle: 'preserve-3d',
         perspective: '800px',
       }}
     >
-      {/* Centered Crown Image: Dead-center in both X and Y */}
-      {image && (
-        <img
-          src={imageUrl}
-          alt="Cathedral Crown"
-          className="max-h-[300px] md:max-h-[340px] w-auto max-w-[85%] pointer-events-none object-contain select-none drop-shadow-2xl"
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%) translateZ(0px)',
-            zIndex: 15,
-          }}
-        />
-      )}
-
-      {/* 3D Ring of Characters positioned at the bottom third of the crown image */}
+      {/* Co-located Crown and 3D Ring Container */}
       <div
-        className="absolute top-[82%] left-1/2 pointer-events-none"
+        className="relative flex items-center justify-center"
         style={{
-          width: 0,
-          height: 0,
           transformStyle: 'preserve-3d',
         }}
       >
-        {texts.map((char, index) => (
-          <div
-            key={index}
-            ref={(el) => {
-              charRefs.current[index] = el;
-            }}
-            className="absolute flex items-center justify-center select-none"
+        {image && (
+          <img
+            src={imageUrl}
+            alt="Cathedral Crown"
+            className="h-[270px] sm:h-[300px] md:h-[330px] w-auto max-w-[85vw] pointer-events-none object-contain select-none drop-shadow-2xl"
             style={{
-              width: '2.5rem',
-              height: '2.5rem',
-              marginLeft: '-1.25rem',
-              marginTop: '-1.25rem',
-              transformStyle: 'preserve-3d',
-              transform: `rotateY(${index * (360 / texts.length)}deg) translateZ(220px)`,
-              backfaceVisibility: 'visible',
-            }}                
-          >
-            <h2 className="text-3xl md:text-5xl font-black text-outline-primary text-accent select-none drop-shadow-md">
-              {char}
-            </h2>
-          </div>
-        ))}
+              position: 'relative',
+              zIndex: 15,
+              transform: 'translateZ(0px)',
+            }}
+          />
+        )}
+
+        {/* 3D Ring anchored precisely across the lower 1/3rd of the crown image */}
+        <div
+          className="absolute top-[72%] left-1/2 pointer-events-none"
+          style={{
+            width: 0,
+            height: 0,
+            transformStyle: 'preserve-3d',
+          }}
+        >
+          {texts.map((char, index) => (
+            <div
+              key={index}
+              ref={(el) => {
+                charRefs.current[index] = el;
+              }}
+              className="absolute flex items-center justify-center select-none"
+              style={{
+                width: '2.5rem',
+                height: '2.5rem',
+                marginLeft: '-1.25rem',
+                marginTop: '-1.25rem',
+                transformStyle: 'preserve-3d',
+                transform: `rotateY(${index * (360 / texts.length)}deg) translateZ(210px)`,
+                backfaceVisibility: 'visible',
+              }}                
+            >
+              <h2 className="text-3xl md:text-5xl font-black text-outline-primary text-accent select-none drop-shadow-md">
+                {char}
+              </h2>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

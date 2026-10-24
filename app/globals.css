@@ -107,13 +107,13 @@ body {
 }
 @font-face {
   font-family: roboto_mono;
-  src: url("./fonts/Roboto_Mono/static/AnyConv.com__RobotoMono-Medium.woff2") format("woff2");
+  src: url("./fonts/Roboto_Mono/static/RobotoMono-Medium.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
 }
 @font-face {
   font-family: roboto;
-  src: url("./fonts/Roboto/AnyConv.com__Roboto-Regular.woff2") format("woff2");
+  src: url("./fonts/Roboto/Roboto-Regular.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
 }

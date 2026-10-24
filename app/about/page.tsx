@@ -6,6 +6,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import {
   Users,
+  MapPin,
   UserPlus,
   Plus,
   History,
@@ -912,6 +913,45 @@ const About = () => {
           })}
         </div>
       )}
+
+      {/* -------------------------------------------------------------------- */}
+      {/* CATHEDRAL LOCATION & SANCTUARY SECTION                               */}
+      {/* -------------------------------------------------------------------- */}
+      <section className="w-full max-w-6xl mx-auto px-4 mt-16 mb-20">
+        <div className="p-6 sm:p-10 rounded-3xl bg-card border border-border/80 shadow-2xl overflow-hidden relative">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+            <div>
+              <div className="inline-flex items-center gap-2 text-accent text-xs font-bold uppercase tracking-wider mb-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20">
+                <MapPin className="w-3.5 h-3.5" />
+                <span>Our Location & Sanctuary</span>
+              </div>
+              <h2 className="text-2xl sm:text-4xl font-bold tracking-tight">
+                Visit CCC Ogudu Expressway Cathedral
+              </h2>
+              <p className="text-sm text-muted-foreground mt-2 max-w-2xl leading-relaxed">
+                Located right along the expressway in Ogudu, Lagos, Nigeria. Come experience divine presence, joyful praise, and warm fellowship with our parish family.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 text-sm bg-accent/10 text-accent font-semibold px-4 py-2.5 rounded-full border border-accent/25 shrink-0 self-start md:self-auto">
+              <MapPin className="w-4 h-4" />
+              <span>Ogudu, Lagos, Nigeria</span>
+            </div>
+          </div>
+
+          <div className="w-full overflow-hidden rounded-2xl border border-border/80 shadow-2xl bg-black/50">
+            <video
+              src="/location video.mp4"
+              controls
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full max-h-[520px] object-cover"
+            />
+          </div>
+        </div>
+      </section>
 
       {/* -------------------------------------------------------------------- */}
       {/* 4. DIALOG: ADD / CHANGE SHEPHERD & VICE SHEPHERD                     */}

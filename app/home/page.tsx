@@ -431,7 +431,7 @@ const Home = () => {
       className="w-[100vw] min-h-[100vh] overflow-clip flex flex-col"
     >
       {/* 1. Hero Title & Text Carousel */}
-      <div className="flex-1 flex flex-col md:flex-row w-full md:w-[85%] min-h-[70vh] overflow-clip mx-auto relative max-w-6xl items-center justify-between">
+      <div className="flex-1 flex flex-col md:flex-row w-full min-h-[70vh] overflow-visible mx-auto relative max-w-[100vw] items-center justify-between px-4 sm:px-8">
         <div className="flex w-full md:max-w-xl flex-col items-center mt-5 md:mt-28 text-center md:text-start md:translate-x-10 z-10">
           <div className="text-center md:text-start">
             <div className="text-5xl text-accent text-center w-full font-bold">CCC OGUDU</div>
@@ -442,13 +442,14 @@ const Home = () => {
           </div>
         </div>
 
-        <div className="flex-1 w-full flex items-center justify-center relative min-h-[420px] mt-10 my-4 md:my-0">
+        <div className="flex-1 w-full max-w-[100vw] flex items-center justify-center relative min-h-[420px] mt-10 my-4 md:my-0 overflow-visible">
           <TextCarousel
             text="O Good Forever***O Good Forever***O Good Forever***"
             speed={2000}
             image={true}
             imageUrl="/crown.webp"
             direction="left"
+            className="w-full max-w-[100vw]"
           />
         </div>
       </div>
@@ -462,7 +463,7 @@ const Home = () => {
           defaultMinimized={true}
           dockedOnMinimize={false}
           defaultRandom={true}
-          defaultCategory="ccc hymns"
+          defaultCategory="ccc"
           fullscreenOnMaximize={false}
           allowMinimize={true}
         />

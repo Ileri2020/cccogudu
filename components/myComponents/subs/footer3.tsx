@@ -146,7 +146,7 @@ export function Footer3({ className }: { className?: string }) {
             >
               {
                 footerLinks.map((link, index)=>(
-                  <Link className="hover:text-foreground" href={link.href}>
+                  <Link key={link.href || index} className="hover:text-foreground" href={link.href}>
                     {link.label}
                   </Link>
                 ))

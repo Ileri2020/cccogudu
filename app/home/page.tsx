@@ -59,20 +59,18 @@ interface HeroCategoryItem {
   id: string;
   label: string;
   href: string;
-  disabled: boolean;
-  tag?: string;
 }
 
 const HERO_BUTTONS: HeroCategoryItem[] = [
-  { id: "all", label: "All", href: "/blog", disabled: false },
-  { id: "praise", label: "Praise", href: "/blog/?tab=praisevideo", disabled: false },
-  { id: "worship", label: "Worship", href: "/blog/?tab=worshipvideo", disabled: false },
-  { id: "ccc-hymns", label: "CCC Hymns", href: "/blog/?tab=ccc", disabled: false },
-  { id: "bible", label: "Bible Sermons", href: "/blog/?tab=bible", disabled: true, tag: "Soon" },
-  { id: "musical", label: "Choir & Orchestra", href: "/blog/?tab=musical", disabled: true, tag: "Soon" },
-  { id: "revival", label: "Revival Feeds", href: "/blog/?tab=revival", disabled: true, tag: "Soon" },
-  { id: "dance", label: "Youth Dance", href: "/blog/?tab=dance", disabled: true, tag: "Soon" },
-  { id: "lessons", label: "Sunday School", href: "/blog/?tab=post", disabled: true, tag: "Soon" },
+  { id: "all", label: "All", href: "/blog" },
+  { id: "praise", label: "Praise", href: "/blog/?tab=praisevideo" },
+  { id: "worship", label: "Worship", href: "/blog/?tab=worshipvideo" },
+  { id: "ccc-hymns", label: "CCC Hymns", href: "/blog/?tab=ccc" },
+  { id: "bible", label: "Bible Sermons", href: "/blog/?tab=bible" },
+  { id: "musical", label: "Choir & Orchestra", href: "/blog/?tab=musical" },
+  { id: "revival", label: "Revival Feeds", href: "/blog/?tab=revival" },
+  { id: "dance", label: "Youth Dance", href: "/blog/?tab=dance" },
+  { id: "lessons", label: "Sunday School", href: "/blog/?tab=post" },
 ];
 
 const HeroButtonCarousel = () => {
@@ -181,7 +179,6 @@ const HeroButtonCarousel = () => {
                   isCenter
                     ? "bg-accent/25 border-2 border-accent text-accent shadow-xl shadow-accent/30 ring-2 ring-accent/40 font-bold"
                     : "bg-background/85 hover:bg-muted border border-border/80 text-foreground/85 hover:border-accent/50",
-                  item.disabled && "opacity-40 cursor-not-allowed border-dashed"
                 )}
               >
                 {/* Triangular play button smoothly appears on center button */}
@@ -189,16 +186,11 @@ const HeroButtonCarousel = () => {
                   <Play
                     className={cn(
                       "w-4 h-4 fill-current mr-2 shrink-0 animate-pulse",
-                      item.disabled ? "text-muted-foreground opacity-50" : "text-accent"
+                      "text-accent"
                     )}
                   />
                 )}
                 <span className="text-xs sm:text-sm md:text-base font-semibold">{item.label}</span>
-                {item.disabled && (
-                  <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-muted text-muted-foreground ml-1.5 hidden sm:inline-block">
-                    Soon
-                  </span>
-                )}
               </div>
             );
 
@@ -222,17 +214,7 @@ const HeroButtonCarousel = () => {
                   pointerEvents: isVisible ? "auto" : "none",
                 }}
               >
-                {item.disabled ? (
-                  <button
-                    type="button"
-                    disabled
-                    onClick={() => (!isCenter ? setCurrentIndex(idx) : null)}
-                    className="cursor-not-allowed"
-                    title={`${item.label} (Feature disabled)`}
-                  >
-                    {buttonContent}
-                  </button>
-                ) : isCenter ? (
+                {isCenter ? (
                   <Link href={item.href} className="cursor-pointer">
                     {buttonContent}
                   </Link>
@@ -369,6 +351,7 @@ const Home = () => {
 
     setIsSubmittingTestimony(true);
 
+    let submissionSucceeded = false;
     const avatar = selectedAvatar || user?.avatarUrl || AVATAR_OPTIONS[0];
     const handle = testimonyRole.trim()
       ? (testimonyRole.trim().startsWith("@") ? testimonyRole.trim() : `@${testimonyRole.trim().replace(/\s+/g, "_").toLowerCase()}`)
@@ -403,6 +386,7 @@ const Home = () => {
         },
         { headers: authHeaders }
       );
+      submissionSucceeded = true;
       toast.success("Hallelujah! Your testimony has been saved to the database and shared with the congregation.");
     } catch (dbErr) {
       console.error("Failed to save testimony to DB:", dbErr);
@@ -410,11 +394,15 @@ const Home = () => {
         const saved = localStorage.getItem("ccl_user_testimonies");
         const currentSaved = saved ? JSON.parse(saved) : [];
         localStorage.setItem("ccl_user_testimonies", JSON.stringify([newTestimonial, ...currentSaved]));
-      } catch (_) {}
-      toast.success("Your testimony has been added to the carousel!");
+        toast.error("We could not save to the live feed, but your testimony was saved locally for now.");
+      } catch (_) {
+        toast.error("Unable to save your testimony right now. Please try again.");
+      }
     } finally {
       setIsSubmittingTestimony(false);
-      setIsTestimonyDialogOpen(false);
+      if (submissionSucceeded) {
+        setIsTestimonyDialogOpen(false);
+      }
       setTestimonyName("");
       setTestimonyRole("");
       setTestimonyMessage("");
@@ -454,7 +442,7 @@ const Home = () => {
         </div>
       </div>
 
-      {/* 2. Rotating Hero Category Buttons (Praise, Worship, CCC Hymns, and other video types disabled) */}
+      {/* 2. Rotating hero category buttons; all categories remain selectable even when empty. */}
       <HeroButtonCarousel />
 
       {/* 3. In-page Music Component - Under Hero, Above Upcoming Events */}

@@ -161,6 +161,34 @@ const MEDIA_CATEGORIES = [
 // Default Cloudinary video media with audio-only transformation
 const DEFAULT_TRACKS: MediaTrack[] = [
   {
+    id: "cld-ccc-1",
+    title: "Olore - Celestial Hymn 420",
+    artist: "CCC Ogudu Youth Fellowship",
+    category: "ccc",
+    videoUrl: "https://res.cloudinary.com/drgpl4vsj/video/upload/v1756847202/olore_dzeew9.mp4",
+    audioUrl: transformToCloudinaryAudio("https://res.cloudinary.com/drgpl4vsj/video/upload/v1756847202/olore_dzeew9.mp4"),
+    thumbnailUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80",
+    duration: 245,
+    likes: 610,
+    comments: [
+      { id: "c5", user: "Mother Bola", text: "Touching spiritual hymn. Amen.", time: "Yesterday" },
+    ],
+  },
+  {
+    id: "cld-ccc-2",
+    title: "CCC Hymns Worship Medley",
+    artist: "CCC Ogudu Central Choir",
+    category: "ccc",
+    videoUrl: "https://res.cloudinary.com/dvqqk9rep/video/upload/v1775040032/ccc_hymns_worship_medley_asozkz.mp4",
+    audioUrl: transformToCloudinaryAudio("https://res.cloudinary.com/dvqqk9rep/video/upload/v1775040032/ccc_hymns_worship_medley_asozkz.mp4"),
+    thumbnailUrl: transformToCloudinaryThumbnail("https://res.cloudinary.com/dvqqk9rep/video/upload/v1775040032/ccc_hymns_worship_medley_asozkz.mp4"),
+    duration: 310,
+    likes: 720,
+    comments: [
+      { id: "c6", user: "Leader Ezekiel", text: "Divine heritage praise. Hallelujah!", time: "Today" },
+    ],
+  },
+  {
     id: "cld-praise-1",
     title: "This Kind God Another One Mo Dey (OG Drummer)",
     artist: "CCC Ogudu Choir & Drummers",
@@ -229,7 +257,7 @@ export const Music: React.FC<MusicProps> = ({
   allowMinimize = true,
   dockedOnMinimize = true,
   defaultRandom = false,
-  defaultCategory = "all",
+  defaultCategory = "ccc",
 }) => {
   // Mode: "audio" (default) or "video"
   const [mediaMode, setMediaMode] = useState<"audio" | "video">("audio");
@@ -239,7 +267,7 @@ export const Music: React.FC<MusicProps> = ({
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
   // Active Category filter
-  const [selectedCategory, setSelectedCategory] = useState<string>(defaultCategory);
+  const [selectedCategory, setSelectedCategory] = useState<string>(defaultCategory || "ccc");
 
   // Cloudinary / DB Fetched Tracks
   const [cloudinaryTracks, setCloudinaryTracks] = useState<MediaTrack[]>(propTracks || DEFAULT_TRACKS);
@@ -309,9 +337,9 @@ export const Music: React.FC<MusicProps> = ({
           if (videoPosts.length > 0 && isMounted) {
             const mappedTracks: MediaTrack[] = videoPosts.map((post: any, idx: number) => {
               const postCategory = Array.isArray(post.for)
-                ? post.for[0] || "praise"
+                ? post.for.join(" ").toLowerCase()
                 : typeof post.for === "string"
-                ? post.for
+                ? post.for.toLowerCase()
                 : "worship";
 
               // Tell Cloudinary to transcode and stream audio only (no video data)

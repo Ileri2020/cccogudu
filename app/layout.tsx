@@ -66,7 +66,7 @@ export default async function RootLayout({
       <SessionProvider  session={session}>
         <AppContextProvider>
           <body
-            className={`font-roboto_mono antialiased`}
+            className="antialiased"
             // ${geistSans.variable} ${geistMono.variable}
           >
             <Providers>

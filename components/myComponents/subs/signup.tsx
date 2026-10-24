@@ -1,5 +1,5 @@
 "use client"
-import React, { FormEvent, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 // const AlertDialog = dynamic(() => import('@/components/ui/alert-dialog').then((e) => e.AlertDialog),{ssr: false,})
 // const AlertDialogAction = dynamic(() => import('@/components/ui/alert-dialog').then((e) => e.AlertDialogAction),{ssr: false,})
@@ -23,41 +23,22 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { register } from '@/server/action/signup'
 import axios from 'axios'
 import { FcGoogle } from 'react-icons/fc'
-import Login from './login'
 import { googleSignIn } from './googlesignin'
+import { useAppContext } from '@/hooks/useAppContext'
+import { useSession } from 'next-auth/react'
 
 interface SignupProps {
   trigger?: React.ReactNode;
+  onDrawerOpen?: () => void;
 }
 
-const Signup: React.FC<SignupProps> = ({ trigger }) => {
-  // const [details, setDetails] = useState({
-  //   userName : "",
-  //   email : "",
-  //   password : "",
-  // })
-
-  // // const [render, setRender] = useState(0);
-
-  // // useEffect(() => {
-  // // }, [render]);
-
-  // interface RefObject<T> {
-  //   readonly current: T | null
-  // }
-
-  //   const form = useRef<HTMLFormElement>(null);
-
-
-  //   const handleChange = (e : any)=>{
-  //     const { name, value } = e.target;
-
-  //     setDetails((prevFormData) => ({ ...prevFormData, [name]: value }));
-  //   }
-  
+const Signup: React.FC<SignupProps> = ({ trigger, onDrawerOpen }) => {
+  const { setUser, user } = useAppContext();
+  const { data: session, status } = useSession();
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState("");
   const [users, setUsers] = useState([]);
   const [formData, setFormData] = useState({
     email: '',
@@ -71,20 +52,56 @@ const Signup: React.FC<SignupProps> = ({ trigger }) => {
   const [editId, setEditId] = useState(null);
 
   useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      setUser({
+        username: (session.user as any).username || session.user.name || "visitor",
+        id: (session.user as any).id || "nil",
+        email: session.user.email || "nil",
+        avatarUrl: (session.user as any).avatarUrl || session.user.image || "",
+        role: (session.user as any).role || "user",
+        department: (session.user as any).department || "nil",
+        contact: (session.user as any).contact || "xxxx",
+      });
+      setOpen(false);
+    }
+  }, [status, session, setUser]);
 
-  }, []);
+  useEffect(() => {
+    if (user?.id && user.id !== "nil" && user.email !== "nil") setOpen(false);
+  }, [user]);
 
   const form = useRef<HTMLFormElement>(null);
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editId) {
-      await axios.put(`/api/dbhandler?model=users&id=${editId}`, formData);
-    } else {
+    setError("");
+    try {
+      if (editId) {
+        await axios.put(`/api/dbhandler?model=users&id=${editId}`, formData);
+        resetForm();
+        setOpen(false);
+        return;
+      }
+
       await axios.post('/api/dbhandler?model=users', formData);
+      const loginResponse = await axios.post('/api/auth/login', {
+        email: formData.email,
+        password: formData.password,
+      });
+      const createdUser = loginResponse.data;
+      setUser({
+        ...createdUser,
+        username: createdUser.username || createdUser.name || formData.name || "visitor",
+        avatarUrl: createdUser.avatarUrl || "",
+        role: createdUser.role || "user",
+        department: createdUser.department || formData.department,
+        contact: createdUser.contact || "xxxx",
+      });
+      resetForm();
+      setOpen(false);
+    } catch (signupError: any) {
+      setError(signupError?.response?.data?.error || "Unable to create your account. Please try again.");
     }
-    resetForm();
   };
 
   const handleEdit = (item) => {
@@ -111,7 +128,13 @@ const Signup: React.FC<SignupProps> = ({ trigger }) => {
 
   return (
     <div className='inline'>
-      <Drawer>
+      <Drawer
+        open={open}
+        onOpenChange={(nextOpen) => {
+          setOpen(nextOpen);
+          if (nextOpen && onDrawerOpen) onDrawerOpen();
+        }}
+      >
         <DrawerTrigger asChild>
           {trigger || <Button variant="outline">Sign up</Button>}
         </DrawerTrigger>
@@ -140,6 +163,7 @@ const Signup: React.FC<SignupProps> = ({ trigger }) => {
               value={formData.name || ''}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             />
+            {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
             <select
               value={formData.department}
               onChange={(e) => setFormData({ ...formData, department : e.target.value })}
@@ -185,10 +209,6 @@ const Signup: React.FC<SignupProps> = ({ trigger }) => {
                 </span>
               </Button>
             </form>
-          </div>
-
-          <div className="w-full my-2">
-            <Login />
           </div>
         </DrawerContent>
       </Drawer>

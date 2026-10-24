@@ -49,6 +49,7 @@ export const AuthRequiredDialog: React.FC<AuthRequiredDialogProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <Login
+              onDrawerOpen={() => onOpenChange(false)}
               trigger={
                 <Button
                   variant="outline"
@@ -62,6 +63,7 @@ export const AuthRequiredDialog: React.FC<AuthRequiredDialogProps> = ({
             />
 
             <Signup
+              onDrawerOpen={() => onOpenChange(false)}
               trigger={
                 <Button
                   className="w-full h-11 rounded-xl bg-accent hover:bg-accent/90 text-accent-foreground font-semibold flex items-center justify-center gap-2 shadow-md shadow-accent/20"

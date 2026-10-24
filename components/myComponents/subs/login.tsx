@@ -1,6 +1,6 @@
 
 "use client"
-import React, { FormEvent, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 //import dynamic from 'next/dynamic'
 // const AlertDialog = dynamic(() => import('@/components/ui/alert-dialog').then((e) => e.AlertDialog),{ssr: false,})
 // const AlertDialogAction = dynamic(() => import('@/components/ui/alert-dialog').then((e) => e.AlertDialogAction),{ssr: false,})
@@ -34,16 +34,18 @@ import { FcGoogle } from 'react-icons/fc'
 import { googleSignIn } from './googlesignin'
 import { usersession } from '@/session'
 import { useSession } from "next-auth/react";
-import Signup from './signup'
 
 
 
 interface LoginProps {
   trigger?: React.ReactNode;
+  onDrawerOpen?: () => void;
 }
 
-const Login: React.FC<LoginProps> = ({ trigger }) => {
-  const {setUser } = useAppContext();
+const Login: React.FC<LoginProps> = ({ trigger, onDrawerOpen }) => {
+  const { setUser, user } = useAppContext();
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState("");
   const [users, setUsers] = useState([]);
   const [formData, setFormData] = useState({
     email: '',
@@ -74,18 +76,36 @@ const Login: React.FC<LoginProps> = ({ trigger }) => {
         department: (session.user as any).department ?? "nil",
         contact: (session.user as any).contact ?? "xxxx",
       });
+      setOpen(false);
     }
   }, [status, session, setUser]);
+
+  useEffect(() => {
+    if (user?.id && user.id !== "nil" && user.email !== "nil") {
+      setOpen(false);
+    }
+  }, [user]);
   const form = useRef<HTMLFormElement>(null);
   
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await axios.post('/api/auth/login', formData);
-    console.log("axios response",res.data)
-    setUser(res.data)
-    resetForm();
-    // fetchUser();
+    setError("");
+    try {
+      const res = await axios.post('/api/auth/login', formData);
+      setUser({
+        ...res.data,
+        username: res.data.username || res.data.name || "visitor",
+        avatarUrl: res.data.avatarUrl || "",
+        role: res.data.role || "user",
+        department: res.data.department || "nil",
+        contact: res.data.contact || "xxxx",
+      });
+      resetForm();
+      setOpen(false);
+    } catch (loginError: any) {
+      setError(loginError?.response?.data?.error || "Unable to sign in. Check your details and try again.");
+    }
   };
 
   const resetForm = () => {
@@ -100,7 +120,13 @@ const Login: React.FC<LoginProps> = ({ trigger }) => {
 
   return (
     <div className='inline'>
-      <Drawer>
+      <Drawer
+        open={open}
+        onOpenChange={(nextOpen) => {
+          setOpen(nextOpen);
+          if (nextOpen && onDrawerOpen) onDrawerOpen();
+        }}
+      >
         <DrawerTrigger asChild>
           {trigger || <Button variant="outline">Login</Button>}
         </DrawerTrigger>
@@ -118,6 +144,7 @@ const Login: React.FC<LoginProps> = ({ trigger }) => {
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             />
+            {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
             <Input
               type="password"
               placeholder="Password"
@@ -153,9 +180,6 @@ const Login: React.FC<LoginProps> = ({ trigger }) => {
             </form>
           </div>
 
-          <div className="w-full my-2">
-            <Signup />
-          </div>
         </DrawerContent>
       </Drawer>
     </div>

@@ -77,8 +77,6 @@ const config: Config = {
   		},
 		fontFamily: {
 		"dance" : ["dance"],
-		"roboto_mono" : ["roboto_mono"],
-		"roboto" : ["roboto"],
 		},
   		borderRadius: {
   			lg: 'var(--radius)',

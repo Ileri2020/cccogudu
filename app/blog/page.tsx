@@ -1,13 +1,11 @@
 "use client"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Posts from '@/components/myComponents/subs/posts'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useAppContext } from '@/hooks/useAppContext'
 import { PostButton } from '@/components/myComponents/subs/fileupload'
-import { useIsMobile } from '@/hooks/use-mobile'
-import { useTheme } from 'next-themes'
 import { BiPlus } from 'react-icons/bi'
 
 const mediaCategories = [
@@ -37,25 +35,9 @@ const normalizeTab = (tab: string | null) => {
 
 const Blog = () => {
   const { selectedVideo, setSelectedVideo, useMock, user } = useAppContext();
-  const isMobile = useIsMobile();
-  const { theme, setTheme } = useTheme();
-  const mobileThemeRef = useRef<string | undefined>(undefined);
-
   const [initialTab, setInitialTab] = useState("ccc");
 
-  useEffect(() => {
-    if (!isMobile) return;
-
-    mobileThemeRef.current = theme;
-    if (theme !== 'dark') setTheme('dark');
-
-    return () => {
-      if (mobileThemeRef.current && mobileThemeRef.current !== 'dark') {
-        setTheme(mobileThemeRef.current as 'light' | 'system');
-      }
-      mobileThemeRef.current = undefined;
-    };
-  }, [isMobile]);
+  
 
   useEffect(() => {
     // Only run client-side
@@ -76,9 +58,9 @@ const Blog = () => {
   const carouselItems = [...carouselCategories, ...carouselCategories];
 
   return (
-    <div className="relative min-h-[calc(100vh-120px)] w-full">
+    <main className="relative min-h-[calc(100vh-120px)] w-full bg-background text-foreground">
       <Tabs defaultValue={initialTab} value={initialTab} onValueChange={(value) => setInitialTab(value)} className="mt-5 flex flex-col gap-2 md:flex-row md:gap-[60px]">
-        <TabsList className="hidden md:flex md:w-full md:max-w-sm md:flex-row md:flex-wrap md:gap-2 lg:max-h-[300px] lg:max-w-[280px] lg:flex-col lg:gap-6 xl:max-w-[340px] xl:mx-0">
+        <TabsList className="hidden border border-border bg-muted text-muted-foreground md:flex md:w-full md:max-w-sm md:flex-row md:flex-wrap md:gap-2 lg:max-h-[300px] lg:max-w-[280px] lg:flex-col lg:gap-6 xl:max-w-[340px] xl:mx-0">
           {[...mediaCategories, ...otherFeeds].map((category) => (
             <TabsTrigger key={category.value} value={category.value} className='rounded-full flex-1'>
               {category.label}
@@ -112,7 +94,7 @@ const Blog = () => {
           </div>
         </div>
 
-        <ScrollArea className="w-full lg:h-[80vh]">
+        <ScrollArea className="w-full bg-background text-foreground lg:h-[80vh]">
           {[...mediaCategories, ...otherFeeds].map((category) => (
             <TabsContent key={category.value} value={category.value} className="w-full">
               {mediaCategories.some((item) => item.value === category.value) ? (
@@ -143,7 +125,7 @@ const Blog = () => {
           </button>
         </PostButton>
       </div>
-    </div>
+    </main>
   )
 }
 

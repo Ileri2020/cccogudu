@@ -71,6 +71,23 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(items);
     }
 
+    if (modelName === "bible" && search) {
+      const page = Math.max(1, Number(pageParam || 1));
+      const limit = Math.min(100, Math.max(0, Number(limitParam || 0)));
+      const items = await prisma.bible.findMany({
+        where: {
+          OR: [
+            { verse: { contains: search, mode: "insensitive" } },
+            { page: { contains: search, mode: "insensitive" } },
+          ],
+        },
+        include: include || { user: { select: { id: true, name: true } } },
+        orderBy: { createdAt: "desc" },
+        ...(limit > 0 ? { take: limit, skip: (page - 1) * limit } : {}),
+      });
+      return NextResponse.json(items);
+    }
+
     const where: any = {};
     if (forParam) {
       where.for = { has: forParam };

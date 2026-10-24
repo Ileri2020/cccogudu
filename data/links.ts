@@ -1,5 +1,5 @@
 import {CgProfile} from "react-icons/cg"
-import { FaBible, FaChurch, FaPhone, FaPray } from "react-icons/fa"
+import { FaBible, FaChurch, FaPhone, FaPray, FaMicrophone } from "react-icons/fa"
 import {RiChatSmile2Line} from "react-icons/ri"
 import {BsChatLeftQuote} from "react-icons/bs"
 
@@ -22,6 +22,11 @@ export default {Links : [
     {
       name: "preaching", //audio, video
       path: "/preach/default",
+      icon: FaMicrophone,
+    },
+    {
+      name: "Bible",
+      path: "/bible",
       icon: FaBible,
     },
     {

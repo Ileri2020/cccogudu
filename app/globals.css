@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -105,19 +101,6 @@ body {
   font-weight: normal;
   font-style: normal;
 }
-@font-face {
-  font-family: roboto_mono;
-  src: url("./fonts/Roboto_Mono/static/RobotoMono-Medium.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-}
-@font-face {
-  font-family: roboto;
-  src: url("./fonts/Roboto/Roboto-Regular.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-}
-
 @layer base {
   * {
     @apply border-border;

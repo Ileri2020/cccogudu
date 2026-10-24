@@ -22,6 +22,7 @@ import { CiCamera, CiCirclePlus } from 'react-icons/ci'
 import { BiPlus } from 'react-icons/bi'
 import { cn } from '@/lib/utils'
 import { AuthRequiredDialog } from '@/components/myComponents/subs/AuthRequiredDialog'
+import { toast } from 'sonner'
 
 
 
@@ -253,9 +254,14 @@ export const PostButton: React.FC<PostButtonProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return alert("Select a file first");
-    if (user.username === "visitor" && user.email === "nil") {
-      return alert("Login or create an account to make a post");
+    if (!file) {
+      toast.error("Select a file before posting.");
+      return;
+    }
+    if (!isLoggedIn) {
+      toast.error("Login or create an account to make a post.");
+      setAuthDialogOpen(true);
+      return;
     }
 
     try {
@@ -294,12 +300,13 @@ export const PostButton: React.FC<PostButtonProps> = ({
         url: fileUrl,
       });
 
+      toast.success("Your post was published successfully.");
       resetForm();
       setDrawerOpen(false);
       if (onPostSuccess) onPostSuccess();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Upload error:", err);
-      alert("Upload failed");
+      toast.error(err?.response?.data?.error || "Upload failed. Please try again.");
     }
   };
 

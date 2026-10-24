@@ -164,7 +164,7 @@ export const TextCarousel: React.FC<TextCarouselProps> = ({
                 backfaceVisibility: 'visible',
               }}                
             >
-              <h2 className="text-3xl md:text-5xl font-black text-outline-primary text-accent select-none drop-shadow-md">
+              <h2 className="text-3xl md:text-5xl font-bold text-outline-primary text-accent select-none drop-shadow-sm">
                 {char}
               </h2>
             </div>

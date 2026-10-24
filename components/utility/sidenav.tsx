@@ -27,8 +27,9 @@ import Signup from "../myComponents/subs/signup";
 
 const Sidenav = () => {
   const pathname = usePathname();
-  const { user } = useAppContext();
+  const { user, setUser } = useAppContext();
   const { data: session, status } = useSession();
+  const [open, setOpen] = React.useState(false);
   const { theme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
@@ -44,10 +45,30 @@ const Sidenav = () => {
     user?.username && user.username !== "visitor"
       ? user.username
       : session?.user?.name || "Your Account";
-  const isSignedIn = status === "authenticated";
+  const isSignedIn = status === "authenticated" || Boolean(
+    user?.id && user.id !== "nil" && user.email !== "nil"
+  );
+
+  React.useEffect(() => {
+    if (isSignedIn) setOpen(false);
+  }, [isSignedIn]);
+
+  const handleSignOut = async () => {
+    setOpen(false);
+    setUser({
+      username: "visitor",
+      id: "nil",
+      email: "nil",
+      avatarUrl: "https://res.cloudinary.com/dc5khnuiu/image/upload/v1752627019/uxokaq0djttd7gsslwj9.png",
+      role: "user",
+      department: "nil",
+      contact: "xxxx",
+    });
+    if (status === "authenticated") await signOut({ callbackUrl: "/" });
+  };
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       {/* Sidebar Trigger Button */}
       <SheetTrigger
         aria-label="Open navigation menu"
@@ -230,7 +251,7 @@ const Sidenav = () => {
               type="button"
               variant="outline"
               className="mb-2 h-10 w-full justify-start gap-2 rounded-xl text-muted-foreground hover:border-destructive/30 hover:bg-destructive/5 hover:text-destructive transition-colors"
-              onClick={() => signOut({ callbackUrl: "/" })}
+              onClick={handleSignOut}
             >
               <LogOut className="h-4 w-4" />
               Sign out

@@ -362,12 +362,12 @@ const Post = ({ post, mobileFeed = false }: any) => {
   // ---------------------- RENDER ----------------------
   return (
     <div className={mobileFeed
-      ? "relative flex h-full min-h-0 w-full max-w-none flex-col overflow-hidden bg-black text-white md:mt-10 md:h-auto md:w-[100vw] md:max-w-sm md:rounded-sm md:bg-background md:text-foreground"
-      : "mt-10 flex flex-col rounded-sm w-[100vw] max-w-sm overflow-clip relative"}>
+      ? "relative flex h-full min-h-0 w-full max-w-none flex-col overflow-hidden bg-background text-foreground md:mt-10 md:h-auto md:w-[100vw] md:max-w-sm md:rounded-sm md:bg-background md:text-foreground"
+      : "mt-10 flex flex-col rounded-sm w-[100vw] max-w-sm overflow-clip relative bg-background text-foreground"}>
       {/* Admin actions (Delete moved down) */}
 
       <div className={mobileFeed
-        ? "absolute inset-x-0 top-0 z-20 mb-0 flex w-full flex-row items-center bg-gradient-to-b from-black/75 to-transparent px-4 pb-8 pt-[max(env(safe-area-inset-top),1rem)] md:relative md:inset-auto md:z-auto md:mb-2 md:bg-transparent md:p-0"
+        ? "absolute inset-x-0 top-0 z-20 mb-0 flex w-full flex-row items-center bg-gradient-to-b from-background/90 via-background/60 to-transparent px-4 pb-8 text-foreground pt-[max(env(safe-area-inset-top),1rem)] md:relative md:inset-auto md:z-auto md:mb-2 md:bg-transparent md:p-0"
         : "w-full flex flex-row items-center px-2 mb-2"}>
         <img
           src={post?.user?.avatarUrl ?? "https://res.cloudinary.com/dc5khnuiu/image/upload/v1752627019/uxokaq0djttd7gsslwj9.png"}
@@ -527,7 +527,7 @@ const Post = ({ post, mobileFeed = false }: any) => {
 
       {/* TEXT */}
       <div className={mobileFeed
-        ? "absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black via-black/80 to-transparent p-4 pb-[max(env(safe-area-inset-bottom),1rem)] md:relative md:inset-auto md:bg-secondary md:p-2"
+        ? "absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-background via-background/90 to-transparent p-4 pb-[max(env(safe-area-inset-bottom),1rem)] text-foreground md:relative md:inset-auto md:bg-secondary md:p-2"
         : "bg-secondary p-2"}>
         {post.for?.some((category: string) => category !== "post") && <div className="font-semibold text-lg">{post.title}</div>}
         <div>{post.post}</div>

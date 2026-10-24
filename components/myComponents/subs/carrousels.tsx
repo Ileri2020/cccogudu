@@ -134,9 +134,9 @@ export const TextCarousel: React.FC<TextCarouselProps> = ({
         />
       )}
 
-      {/* 3D Ring of Characters positioned at the lower third bottom of the crown image */}
+      {/* 3D Ring of Characters positioned at the bottom third of the crown image */}
       <div
-        className="absolute top-[68%] left-1/2 pointer-events-none"
+        className="absolute top-[82%] left-1/2 pointer-events-none"
         style={{
           width: 0,
           height: 0,

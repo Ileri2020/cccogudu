@@ -101,7 +101,7 @@ export function transformToCloudinaryThumbnail(url: string, fallbackThumb?: stri
   if (cleanUrl.includes("res.cloudinary.com") && cleanUrl.includes("/video/upload/")) {
     // Cloudinary extracts 1st frame image of the video at second 0
     return cleanUrl
-      .replace(/\/video\/upload\/(?:[^\/]+\/)?/, "/video/upload/so_0,f_jpg,w_600,c_fill,q_auto/")
+      .replace("/video/upload/", "/video/upload/so_0,w_600,c_fill,q_auto/")
       .replace(/\.(mp4|mov|webm|mkv|avi|m4v|mp3)(\?.*)?$/i, ".jpg$2");
   }
   return fallbackThumb || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80";
@@ -146,7 +146,7 @@ export interface MusicProps {
 // Media Categories matching the blog page tabs and database models
 const MEDIA_CATEGORIES = [
   { id: "all", label: "All", badge: "All" },
-  { id: "ccc", label: "CCC Hymns", badge: "Hymns" },
+  { id: "ccc hymns", label: "CCC Hymns", badge: "Hymns" },
   { id: "praise", label: "Praise", badge: "Popular" },
   { id: "worship", label: "Worship", badge: "Spiritual" },
   { id: "ccc ogudu", label: "CCC Ogudu", badge: "Featured" },

@@ -108,7 +108,7 @@ export function Footer3({ className }: { className?: string }) {
           {columns.map((column, index)=>(
             <div key={index}>
               <h3 className="mb-4 text-sm font-semibold">{column.label}</h3>
-              <ul className="space-y-2 text-sm">
+              <ul className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 {
                   column.links.map((link, index)=>(
                     <li key={index}>

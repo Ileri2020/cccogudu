@@ -72,7 +72,7 @@ export function TestimonialsSection({
         animationRef.current.pause();
       }
     };
-  }, []);
+  }, [testimonials]);
 
   // Handle hover interactions
   const handleMouseEnter = () => {

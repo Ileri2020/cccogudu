@@ -28,6 +28,8 @@ import { Volume2, VolumeX, Rocket } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import Login from "@/components/myComponents/subs/login";
+import { markMediaAsSeen } from "@/lib/mediaTracker";
+import { AuthRequiredDialog } from "@/components/myComponents/subs/AuthRequiredDialog";
 
 
 const Comments = ({ videoId, reload }: { videoId: string; reload: boolean }) => {
@@ -126,21 +128,25 @@ const Post = ({ post, mobileFeed = false }: any) => {
     }
   };
 
+  const handleVolumeChange = (newVol: number) => {
+    setVolumeBoost(newVol);
+    setIsAudioMuted(newVol === 0);
+    const el = (videoRef.current || audioRef.current) as HTMLMediaElement;
+    if (el) {
+      setupAudioBoost(el);
+      if (gainNodeRef.current && audioContextRef.current) {
+        gainNodeRef.current.gain.setTargetAtTime(newVol, audioContextRef.current.currentTime, 0.05);
+      }
+      el.volume = Math.min(1.0, newVol);
+    }
+  };
+
   const toggleVolumeBoost = (e: React.MouseEvent) => {
     e.stopPropagation();
     const el = (videoRef.current || audioRef.current) as HTMLMediaElement;
     if (el) setupAudioBoost(el);
-    if (volumeBoost >= 1.45) {
-      setVolumeBoost(1.0);
-      if (gainNodeRef.current && audioContextRef.current) {
-        gainNodeRef.current.gain.setTargetAtTime(1.0, audioContextRef.current.currentTime, 0.05);
-      }
-    } else {
-      setVolumeBoost(1.5);
-      if (gainNodeRef.current && audioContextRef.current) {
-        gainNodeRef.current.gain.setTargetAtTime(1.5, audioContextRef.current.currentTime, 0.05);
-      }
-    }
+    const nextVol = volumeBoost >= 1.45 ? 1.0 : 1.5;
+    handleVolumeChange(nextVol);
   };
 
   const postUrl = `${process.env.NEXT_PUBLIC_ORIGIN_URL}/blog/${post.id}?page=${post.for?.[0] || "post"}`;
@@ -173,6 +179,7 @@ const Post = ({ post, mobileFeed = false }: any) => {
             if (entry.isIntersecting && !isPlaying.current) {
               mediaRef.current?.play().catch(() => {});
               isPlaying.current = true;
+              markMediaAsSeen(post.id);
             } else if (!entry.isIntersecting && isPlaying.current) {
               mediaRef.current?.pause();
               isPlaying.current = false;
@@ -188,7 +195,7 @@ const Post = ({ post, mobileFeed = false }: any) => {
   }, []);
 
   const handleLike = async () => {
-    if (!user || user.username === "visitor") {
+    if (!user || user.username === "visitor" || !user.id || user.id === "nil" || user.email === "nil") {
       setOpenLoginDialog(true);
       return;
     }
@@ -462,20 +469,38 @@ const Post = ({ post, mobileFeed = false }: any) => {
               />
             )}
 
-            {/* 1.5x Volume Boost Overlay Button */}
-            <button
-              type="button"
-              onClick={toggleVolumeBoost}
-              className={`absolute top-2 right-2 z-20 flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold backdrop-blur-md transition-all shadow-md ${
-                volumeBoost > 1.0
-                  ? "bg-amber-500/95 text-black shadow-amber-500/30 scale-105 animate-pulse"
-                  : "bg-black/60 text-white/90 border border-white/20 hover:bg-black/80"
-              }`}
-              title="Toggle 1.5x App Volume Boost"
+            {/* 1.5x Sound Boost Control (Reaching 1.5x sound) */}
+            <div
+              className="absolute top-2 right-2 z-20 flex items-center gap-1.5 bg-black/75 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-white/20 shadow-lg"
+              onClick={(e) => e.stopPropagation()}
             >
-              <Volume2 className="w-3.5 h-3.5" />
-              <span>{volumeBoost > 1.0 ? "1.5x Boost" : "1.0x Vol"}</span>
-            </button>
+              <button
+                type="button"
+                onClick={toggleVolumeBoost}
+                className={`flex items-center gap-1 text-[11px] font-bold transition-all ${
+                  volumeBoost >= 1.45
+                    ? "text-amber-400 font-extrabold"
+                    : volumeBoost > 1.0
+                    ? "text-amber-300"
+                    : "text-white/90 hover:text-white"
+                }`}
+                title="Toggle 1.5x Cathedral Sound Boost"
+              >
+                <Volume2 className="w-3.5 h-3.5" />
+                <span>{volumeBoost >= 1.45 ? "1.5x Boost" : `${volumeBoost.toFixed(1)}x`}</span>
+              </button>
+
+              <input
+                type="range"
+                min="0"
+                max="1.5"
+                step="0.05"
+                value={volumeBoost}
+                onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+                className="w-14 sm:w-16 h-1 accent-amber-400 cursor-pointer bg-white/30 rounded-lg"
+                title={`Sound volume: ${Math.round((volumeBoost / 1.0) * 100)}% (Max 150%)`}
+              />
+            </div>
 
             <AnimatePresence>
               {showHeart && (
@@ -560,14 +585,12 @@ const Post = ({ post, mobileFeed = false }: any) => {
         </div>
       </div>
 
-      <Dialog open={openLoginDialog} onOpenChange={setOpenLoginDialog}>
-        <DialogContent className="max-w-sm">
-          <DialogTitle className="text-center">Login Required</DialogTitle>
-          <div className="py-6 flex justify-center">
-            <Login />
-          </div>
-        </DialogContent>
-      </Dialog>
+      <AuthRequiredDialog
+        open={openLoginDialog}
+        onOpenChange={setOpenLoginDialog}
+        title="Sign In to Like Post"
+        description="Join the congregation by logging in or creating a new account to like posts and share praises."
+      />
 
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
         <DialogContent className="max-w-md">

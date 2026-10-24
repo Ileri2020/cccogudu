@@ -38,7 +38,11 @@ import Signup from './signup'
 
 
 
-const Login = () => {
+interface LoginProps {
+  trigger?: React.ReactNode;
+}
+
+const Login: React.FC<LoginProps> = ({ trigger }) => {
   const {setUser } = useAppContext();
   const [users, setUsers] = useState([]);
   const [formData, setFormData] = useState({
@@ -98,7 +102,7 @@ const Login = () => {
     <div className='inline'>
       <Drawer>
         <DrawerTrigger asChild>
-          <Button variant="outline">Login</Button>
+          {trigger || <Button variant="outline">Login</Button>}
         </DrawerTrigger>
         <DrawerContent className='flex flex-col justify-center items-center py-10 /bg-red-500 max-w-5xl mx-auto'>
 

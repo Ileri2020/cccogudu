@@ -7,7 +7,9 @@ const projectRoot = fileURLToPath(new URL("..", import.meta.url));
 const nodeModules = path.join(projectRoot, "node_modules");
 const environment = {
   ...process.env,
-  NEXT_DIST_DIR: ".next-production",
+  // Vercel's Next.js builder expects the standard `.next` output directory.
+  // Keep local production builds separate from the directory used by `next dev`.
+  NEXT_DIST_DIR: process.env.VERCEL ? ".next" : ".next-production",
 };
 
 function run(script, args) {

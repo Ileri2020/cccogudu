@@ -65,6 +65,7 @@ import {
 } from "@/components/ui/carousel";
 import { Toggle } from "@/components/ui/toggle";
 import { cn } from "@/lib/utils";
+import { prioritizeUnseenMedia, markMediaAsSeen } from "@/lib/mediaTracker";
 
 /** ----------------------------------------------------------------
  * CLOUDINARY VIDEO-TO-AUDIO STREAMING TRANSFORMER
@@ -136,11 +137,16 @@ export interface MusicProps {
   onTrackChange?: (track: MediaTrack) => void;
   defaultMinimized?: boolean;
   fullscreenOnMaximize?: boolean;
+  allowMinimize?: boolean;
+  dockedOnMinimize?: boolean;
+  defaultRandom?: boolean;
+  defaultCategory?: string;
 }
 
 // Media Categories matching the blog page tabs and database models
 const MEDIA_CATEGORIES = [
-  { id: "all", label: "All Media", badge: "Live" },
+  { id: "all", label: "All", badge: "All" },
+  { id: "ccc", label: "CCC Hymns", badge: "Hymns" },
   { id: "praise", label: "Praise", badge: "Popular" },
   { id: "worship", label: "Worship", badge: "Spiritual" },
   { id: "ccc ogudu", label: "CCC Ogudu", badge: "Featured" },
@@ -220,15 +226,20 @@ export const Music: React.FC<MusicProps> = ({
   onTrackChange,
   defaultMinimized = false,
   fullscreenOnMaximize = false,
+  allowMinimize = true,
+  dockedOnMinimize = true,
+  defaultRandom = false,
+  defaultCategory = "all",
 }) => {
   // Mode: "audio" (default) or "video"
   const [mediaMode, setMediaMode] = useState<"audio" | "video">("audio");
 
   // Minimized / Maximized state
-  const [isMinimized, setIsMinimized] = useState<boolean>(defaultMinimized);
+  const [isMinimized, setIsMinimized] = useState<boolean>(allowMinimize ? defaultMinimized : false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
   // Active Category filter
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState<string>(defaultCategory);
 
   // Cloudinary / DB Fetched Tracks
   const [cloudinaryTracks, setCloudinaryTracks] = useState<MediaTrack[]>(propTracks || DEFAULT_TRACKS);
@@ -241,7 +252,7 @@ export const Music: React.FC<MusicProps> = ({
   const [duration, setDuration] = useState<number>(215);
 
   // Playback Order & Modes
-  const [isShuffle, setIsShuffle] = useState<boolean>(false);
+  const [isShuffle, setIsShuffle] = useState<boolean>(defaultRandom);
   const [playbackMode, setPlaybackMode] = useState<PlaybackMode>("play-all");
 
   // Bass Boost Mode
@@ -342,17 +353,29 @@ export const Music: React.FC<MusicProps> = ({
     };
   }, [propTracks]);
 
-  // Filtered tracks based on selected category (matches blog page tabs)
   const filteredTracks = useMemo(() => {
-    if (selectedCategory === "all") return cloudinaryTracks;
-    const cat = selectedCategory.toLowerCase().replace("video", "");
+    if (!selectedCategory || selectedCategory === "all") return cloudinaryTracks;
+    const cat = selectedCategory.toLowerCase().replace("video", "").trim();
+
+    // Specific match for CCC Hymns playlist
+    if (cat === "ccc hymns" || cat === "ccchymns" || cat === "ccc-hymns" || cat === "hymn" || cat === "hymns") {
+      const results = cloudinaryTracks.filter((t) => {
+        const trackCat = t.category.toLowerCase();
+        return trackCat.includes("hymn") || trackCat.includes("ccc");
+      });
+      if (results.length > 0) return results;
+    }
+
     return cloudinaryTracks.filter((t) => {
       const trackCat = t.category.toLowerCase().replace("video", "");
       return trackCat.includes(cat) || cat.includes(trackCat);
     });
   }, [cloudinaryTracks, selectedCategory]);
 
-  const playlist = filteredTracks.length > 0 ? filteredTracks : cloudinaryTracks;
+  const rawPlaylist = filteredTracks.length > 0 ? filteredTracks : cloudinaryTracks;
+  const playlist = useMemo(() => {
+    return prioritizeUnseenMedia(rawPlaylist);
+  }, [rawPlaylist]);
 
   const currentTrack = useMemo(() => {
     if (playlist.length === 0) return DEFAULT_TRACKS[0];
@@ -361,6 +384,9 @@ export const Music: React.FC<MusicProps> = ({
 
   useEffect(() => {
     if (currentTrack) {
+      if (isPlaying) {
+        markMediaAsSeen(currentTrack.id);
+      }
       setLikeCounts((prev) => ({
         ...prev,
         [currentTrack.id]: prev[currentTrack.id] ?? (currentTrack.likes || 140),
@@ -370,7 +396,7 @@ export const Music: React.FC<MusicProps> = ({
         [currentTrack.id]: prev[currentTrack.id] || currentTrack.comments || [],
       }));
     }
-  }, [currentTrack]);
+  }, [currentTrack, isPlaying]);
 
   useEffect(() => {
     if (onTrackChange && currentTrack) {
@@ -753,13 +779,15 @@ export const Music: React.FC<MusicProps> = ({
   /** ----------------------------------------------------------------
    * Minimized Dock Player Render (App Home Screen Dock)
    * ----------------------------------------------------------------*/
-  if (isMinimized) {
+  if (isMinimized && allowMinimize) {
     return (
       <div
         className={cn(
-          "fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-2xl",
+          dockedOnMinimize
+            ? "fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-2xl"
+            : "relative w-full max-w-3xl mx-auto z-20 my-2",
           "bg-background/95 dark:bg-card/95 backdrop-blur-2xl border border-border/80",
-          "shadow-[0_12px_40px_rgba(0,0,0,0.35)] rounded-2xl p-2.5 transition-all duration-300 ease-out",
+          "shadow-[0_12px_40px_rgba(0,0,0,0.25)] rounded-2xl p-2.5 sm:p-3 transition-all duration-300 ease-out",
           "flex flex-col gap-2 ring-1 ring-primary/20",
           className
         )}
@@ -804,11 +832,17 @@ export const Music: React.FC<MusicProps> = ({
               <span className="font-semibold text-sm truncate max-w-[150px] sm:max-w-xs text-foreground">
                 {currentTrack.title}
               </span>
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground flex-wrap">
                 <span className="truncate">{currentTrack.artist}</span>
                 <Badge variant="outline" className="text-[10px] uppercase px-1 py-0 h-4 border-accent text-accent">
                   {currentTrack.category}
                 </Badge>
+                {isShuffle && (
+                  <span className="text-[9px] font-bold text-accent bg-accent/15 px-1.5 py-0.2 rounded-full flex items-center gap-0.5">
+                    <Shuffle className="w-2.5 h-2.5" />
+                    Random
+                  </span>
+                )}
                 {volume > 1.0 && (
                   <span className="text-[9px] font-bold text-accent bg-accent/15 px-1 py-0.2 rounded-full flex items-center gap-0.5">
                     <Rocket className="w-2.5 h-2.5" />
@@ -991,24 +1025,45 @@ export const Music: React.FC<MusicProps> = ({
             </Tabs>
 
             {/* Minimize / Close Fullscreen Toggle Button */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-10 w-10 rounded-full border-border/70 hover:bg-muted text-muted-foreground hover:text-foreground shadow-sm"
-                    onClick={() => setIsMinimized(true)}
-                    aria-label="Minimize Player"
-                  >
-                    {fullscreenOnMaximize ? <X className="h-5 w-5" /> : <Minimize2 className="h-4 w-4" />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  {fullscreenOnMaximize ? "Close Full Screen" : "Minimize to Dock"}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            {allowMinimize ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-10 w-10 rounded-full border-border/70 hover:bg-muted text-muted-foreground hover:text-foreground shadow-sm"
+                      onClick={() => setIsMinimized(true)}
+                      aria-label="Minimize Player"
+                    >
+                      {fullscreenOnMaximize ? <X className="h-5 w-5" /> : <Minimize2 className="h-4 w-4" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    {fullscreenOnMaximize ? "Close Full Screen" : "Minimize to Dock"}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-10 w-10 rounded-full border-border/70 hover:bg-muted text-muted-foreground hover:text-foreground shadow-sm"
+                      onClick={() => setIsFullscreen(!isFullscreen)}
+                      aria-label={isFullscreen ? "Exit Fullscreen" : "Fullscreen View"}
+                    >
+                      {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    {isFullscreen ? "Exit Fullscreen" : "Expand to Fullscreen"}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -1677,7 +1732,7 @@ export const Music: React.FC<MusicProps> = ({
     </Card>
   );
 
-  if (fullscreenOnMaximize) {
+  if (isFullscreen || (fullscreenOnMaximize && !isMinimized)) {
     return (
       <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
         {playerCard}

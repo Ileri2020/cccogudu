@@ -47,8 +47,13 @@ export function verifyAuthToken(token: string) {
 
 export function extractBearerToken(req: Request) {
   const header = req.headers.get('authorization') || '';
-  if (!header.startsWith('Bearer ')) return null;
-  return header.slice(7).trim();
+  if (header.startsWith('Bearer ')) return header.slice(7).trim();
+
+  const cookieHeader = req.headers.get('cookie') || '';
+  const match = cookieHeader.match(/(?:^|;\s*)(?:token|auth_token)=([^;]+)/);
+  if (match) return decodeURIComponent(match[1]);
+
+  return null;
 }
 
 export function getAuthSession(req: Request) {

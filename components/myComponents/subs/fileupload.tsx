@@ -20,6 +20,8 @@ import { CldUploadWidget } from 'next-cloudinary'
 import {cloudUpload, uploadCloudinary} from '@/server/config/cloudinary'
 import { CiCamera, CiCirclePlus } from 'react-icons/ci'
 import { BiPlus } from 'react-icons/bi'
+import { cn } from '@/lib/utils'
+import { AuthRequiredDialog } from '@/components/myComponents/subs/AuthRequiredDialog'
 
 
 
@@ -188,7 +190,19 @@ export const ProfileImg = () => {
 
 
 
-export const PostButton = () => {
+export interface PostButtonProps {
+  defaultFor?: string;
+  className?: string;
+  children?: React.ReactNode;
+  onPostSuccess?: () => void;
+}
+
+export const PostButton: React.FC<PostButtonProps> = ({
+  defaultFor = "post",
+  className = "",
+  children,
+  onPostSuccess,
+}) => {
   const { user } = useAppContext();
 
   const [file, setFile] = useState<File | null>(null);
@@ -196,7 +210,7 @@ export const PostButton = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [formData, setFormData] = useState({
     title: "",
-    for: "post",
+    for: defaultFor,
     description: "",
     type: "image",
     userId: user.id,
@@ -221,7 +235,7 @@ export const PostButton = () => {
     setUploadProgress(0);
     setFormData({
       title: "",
-      for: "post",
+      for: defaultFor,
       description: "",
       type: "image",
       userId: user.id,
@@ -272,6 +286,8 @@ export const PostButton = () => {
       });
 
       resetForm();
+      setDrawerOpen(false);
+      if (onPostSuccess) onPostSuccess();
     } catch (err) {
       console.error("Upload error:", err);
       alert("Upload failed");
@@ -279,12 +295,40 @@ export const PostButton = () => {
   };
 
   return (
-    <div className="z-10 w-full">
-      <Drawer>
-        <DrawerTrigger asChild>
-          <button className="w-full h-10 border-2 border-accent flex items-center justify-center gap-2 rounded-full font-bold text-accent text-2xl hover:text-accent hover:bg-accent/40">
+    <div className={cn("z-10", className || "w-full")}>
+      <AuthRequiredDialog
+        open={authDialogOpen}
+        onOpenChange={setAuthDialogOpen}
+        title="Sign In to Post Media"
+        description="You need to be logged in to post videos, songs, and media to the blog playlists."
+      />
+      <Drawer
+        open={drawerOpen}
+        onOpenChange={(open) => {
+          if (open && !isLoggedIn) {
+            setAuthDialogOpen(true);
+            return;
+          }
+          setDrawerOpen(open);
+        }}
+      >
+        <DrawerTrigger
+          asChild
+          onClick={(e) => {
+            if (!isLoggedIn) {
+              e.preventDefault();
+              e.stopPropagation();
+              setAuthDialogOpen(true);
+            }
+          }}
+        >
+          {children ? (
+            children
+          ) : (
+            <button className="w-full h-10 border-2 border-accent flex items-center justify-center gap-2 rounded-full font-bold text-accent text-2xl hover:text-accent hover:bg-accent/40">
             <BiPlus />
-          </button>
+            </button>
+          )}
         </DrawerTrigger>
 
         <DrawerContent className="flex flex-col justify-center items-center py-10 max-w-5xl mx-auto">
@@ -330,6 +374,8 @@ export const PostButton = () => {
               value={formData.for}
               onChange={(e) => setFormData({ ...formData, for: e.target.value })}
             >
+              <option value="ccc">CCC Hymns & Heritage</option>
+              <option value="ccc">CCC Hymns & Heritage</option>
               <option value="praisevideo">Praise Video</option>
               <option value="worshipvideo">Worship Video</option>
               <option value="post">post</option>

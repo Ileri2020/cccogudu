@@ -4,6 +4,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import axios from "axios";
 import Post from "./post";
+import { prioritizeUnseenMedia } from "@/lib/mediaTracker";
 
 const Posts = ({ page, media = "", category = "" }) => {
   const [allPosts, setAllPosts] = useState([]);
@@ -88,6 +89,9 @@ const Posts = ({ page, media = "", category = "" }) => {
 
       // Sort
       posts = sortPosts(posts, sortOrder, media);
+
+      // Prioritize unseen media over seen media
+      posts = prioritizeUnseenMedia(posts);
 
       // Prioritize selected media
       posts = prioritizeMedia(posts, media);

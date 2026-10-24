@@ -153,12 +153,25 @@ export async function POST(req: NextRequest) {
     const session = getAuthSession(req);
     const authRequiredModels = ["posts", "likes", "comments"];
 
-    if (authRequiredModels.includes(modelName) && !session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const isTestimony =
+      modelName === "posts" &&
+      (Array.isArray(data.for) ? data.for.includes("testimony") : data.for === "testimony");
+
+    if (authRequiredModels.includes(modelName) && !session && !isTestimony) {
+      if (!data.userId || data.userId === "nil") {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
     }
 
     if (session && authRequiredModels.includes(modelName)) {
       data.userId = parseId(session.id);
+    } else if (data.userId && data.userId !== "nil") {
+      data.userId = parseId(data.userId);
+    } else if (isTestimony) {
+      const defaultUser = await prisma.user.findFirst({ select: { id: true } });
+      if (defaultUser) {
+        data.userId = defaultUser.id;
+      }
     }
 
     console.log("POST data:", data, "files:", files, "isForm:", isForm);
@@ -251,9 +264,16 @@ export async function POST(req: NextRequest) {
     if (modelName === "posts") {
       if (typeof data.for === "string") data.for = [data.for];
       if (!Array.isArray(data.for)) data.for = ["post"];
+      if (!data.url) {
+        data.url = "https://res.cloudinary.com/dc5khnuiu/image/upload/v1752627019/uxokaq0djttd7gsslwj9.png";
+      }
       const isAdmin = session?.role === "admin";
-      // If not admin, new posts are unverified
-      data.isVerified = isAdmin ? true : false;
+      const isAutoApproved =
+        isAdmin ||
+        data.for.includes("event") ||
+        data.for.includes("testimony") ||
+        data.isVerified === true;
+      data.isVerified = isAutoApproved ? true : false;
     }
 
     console.log("Creating new", modelName, "with data:", data);

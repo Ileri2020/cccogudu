@@ -443,34 +443,35 @@ const Home = () => {
         opacity: 1,
         transition: { delay: 0.5, duration: 0.6, ease: "easeIn" },
       }}
-      className="w-[100vw] min-h-[100vh] overflow-clip flex flex-col"
+      className="w-[100vw] min-h-[70vh] overflow-clip flex flex-col"
     >
       {/* 1. Hero Title & Text Carousel */}
-      <div className="flex-1 flex flex-col md:flex-row w-full min-h-[70vh] overflow-visible mx-auto relative max-w-[100vw] items-center justify-between px-4 sm:px-8">
+      <div className="flex-1 flex flex-col md:flex-row w-full min-h-[50vh] overflow-visible mx-auto relative max-w-[100vw] items-center justify-between px-4 sm:px-8">
         <div className="flex w-full md:max-w-xl flex-col items-center mt-5 md:mt-28 text-center md:text-start md:translate-x-10 z-10">
           <div className="text-center md:text-start">
             <div className="text-5xl text-accent text-center w-full font-bold">CCC OGUDU</div>
             <div className="text-3xl text-primary/80 font-semibold">EXPRESSWAY CATHEDRAL</div>
           </div>
-          <div>
+          <div className="">
             <ZoomInText />
           </div>
         </div>
 
-        <div className="flex-1 w-full max-w-[100vw] flex items-center justify-center relative min-h-[360px] md:my-0 overflow-visible">
+        <div className=" w-full max-w-[100vw] flex items-center justify-center relative min-h-[360px] md:my-0 overflow-visible">
           <TextCarousel
             text="O Good Forever***O Good Forever***O Good Forever***"
             speed={2000}
             image={true}
             imageUrl="/crown.webp"
             direction="left"
-            className="w-full max-w-[100vw]"
+            className="w-full max-w-[100vw] bg-warning"
           />
         </div>
+      </div>
 
-        {/* 2. Rotating hero category buttons; all categories remain selectable even when empty. */}
-        <HeroButtonCarousel />
-        <LazyMusicPlayer
+      {/* 2. Rotating hero category buttons; all categories remain selectable even when empty. */}
+      <HeroButtonCarousel />
+      <LazyMusicPlayer
           defaultMinimized={true}
           dockedOnMinimize={false}
           defaultRandom={true}
@@ -478,9 +479,6 @@ const Home = () => {
           fullscreenOnMaximize={false}
           allowMinimize={true}
         />
-      </div>
-
-      
 
       {/* 3. In-page Music Component - Under Hero, Above Upcoming Events */}
       <section className="w-full max-w-5xl mx-auto px-4 my-8">
@@ -1155,6 +1153,13 @@ const UpcomingEvents = ({ page, media = "" }) => {
           Loading...
         </div>
       )}
+
+      <AuthRequiredDialog
+        open={isAuthDialogOpen}
+        onOpenChange={setIsAuthDialogOpen}
+        title="Sign In to Post Events"
+        description="Only logged-in church members can announce upcoming church events."
+      />
 
       {/* Event Post Dialog */}
       <Dialog open={isEventDialogOpen} onOpenChange={setIsEventDialogOpen}>

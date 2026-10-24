@@ -94,15 +94,9 @@ const Login: React.FC<LoginProps> = ({ trigger, onDrawerOpen }) => {
   const handleTriggerClick = (event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
-    if (openTimerRef.current) clearTimeout(openTimerRef.current);
-
     if (onDrawerOpen) {
       onDrawerOpen();
-      // Let the parent modal finish closing before Vaul opens its modal drawer.
-      openTimerRef.current = setTimeout(() => setOpen(true), 250);
-      return;
     }
-
     setOpen(true);
   };
 

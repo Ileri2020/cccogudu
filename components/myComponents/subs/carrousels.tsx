@@ -129,7 +129,7 @@ export const TextCarousel: React.FC<TextCarouselProps> = ({
           <img
             src={imageUrl}
             alt="Cathedral Crown"
-            className="h-[270px] sm:h-[300px] md:h-[330px] w-auto max-w-[85vw] pointer-events-none object-contain select-none drop-shadow-2xl"
+            className="h-[220px] sm:h-[220px] md:h-[330px] w-auto max-w-[85vw] pointer-events-none object-contain select-none drop-shadow-2xl"
             style={{
               position: 'relative',
               zIndex: 15,

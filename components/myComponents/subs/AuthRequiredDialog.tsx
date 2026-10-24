@@ -54,7 +54,6 @@ export const AuthRequiredDialog: React.FC<AuthRequiredDialogProps> = ({
                 <Button
                   variant="outline"
                   className="w-full h-11 rounded-xl font-semibold flex items-center justify-center gap-2 border-border hover:bg-muted"
-                  onClick={() => onOpenChange(false)}
                 >
                   <LogIn className="w-4 h-4 text-accent" />
                   <span>Sign In</span>
@@ -67,7 +66,6 @@ export const AuthRequiredDialog: React.FC<AuthRequiredDialogProps> = ({
               trigger={
                 <Button
                   className="w-full h-11 rounded-xl bg-accent hover:bg-accent/90 text-accent-foreground font-semibold flex items-center justify-center gap-2 shadow-md shadow-accent/20"
-                  onClick={() => onOpenChange(false)}
                 >
                   <UserPlus className="w-4 h-4" />
                   <span>Sign Up</span>

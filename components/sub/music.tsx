@@ -247,6 +247,15 @@ const DEFAULT_TRACKS: MediaTrack[] = [
   },
 ];
 
+const shuffleArray = <T,>(items: T[]): T[] => {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+};
+
 export const Music: React.FC<MusicProps> = ({
   tracks: propTracks,
   initialTrackIndex = 0,
@@ -411,8 +420,17 @@ export const Music: React.FC<MusicProps> = ({
 
   const rawPlaylist = filteredTracks.length > 0 ? filteredTracks : cloudinaryTracks;
   const playlist = useMemo(() => {
+    if (defaultRandom) {
+      return shuffleArray(rawPlaylist);
+    }
     return prioritizeUnseenMedia(rawPlaylist);
-  }, [rawPlaylist]);
+  }, [rawPlaylist, defaultRandom]);
+
+  useEffect(() => {
+    if (!defaultRandom || playlist.length === 0) return;
+    const randomStartIndex = Math.floor(Math.random() * playlist.length);
+    setCurrentTrackIndex(randomStartIndex);
+  }, [defaultRandom, selectedCategory, playlist.length]);
 
   const currentTrack = useMemo(() => {
     if (playlist.length === 0) return DEFAULT_TRACKS[0];

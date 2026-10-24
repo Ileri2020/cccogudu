@@ -3,37 +3,25 @@
 "use client"
 import { motion } from "framer-motion"
 import { Button } from '@/components/ui/button';
-import Social from "@/components/utility/social"
-import { Gallery } from "@/components/myComponents/subs"
-import { TextAnimations, FlyInText, FlipInText, ZoomInText, ScaleInText, SlideInText, SlideUpText, BounceInText, RotateInText, TypewriterText } from "@/components/myComponents/subs/textctrl";
-import Logobg from '@/components/myComponents/subs/logobg';
-import gallery from '@/data/gallery';
+import { ZoomInText } from "@/components/myComponents/subs/textctrl";
 import testimonials from '@/data/testimonial';
-import Similar from '../../components/myComponents/subs/similar';
-import Footer from '../../components/myComponents/subs/footer';
-import Footer1 from "@/components/myComponents/subs/Footer1";
-import Footer2 from "@/components/myComponents/subs/Footer2";
 import { useAppContext } from "@/hooks/useAppContext";
 import { TestimonialsSection } from "@/components/myComponents/subs/testimonials";
-import { CoverCarousel, TextCarousel } from "@/components/myComponents/subs/carrousels";
-import Post from "@/components/myComponents/subs/post";
-import Posts from "@/components/myComponents/subs/posts";
+import { TextCarousel } from "@/components/myComponents/subs/carrousels";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
-import Music from "@/components/sub/music";
+import dynamic from "next/dynamic";
 import {
   Play,
   ChevronLeft,
   ChevronRight,
   HeartHandshake,
   Sparkles,
-  MessageSquarePlus,
   Send,
   Check,
   CalendarPlus,
 } from "lucide-react";
-import { PostButton } from "@/components/myComponents/subs/fileupload";
 import { AuthRequiredDialog } from "@/components/myComponents/subs/AuthRequiredDialog";
 import {
   Dialog,
@@ -47,6 +35,43 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { dedupeClientRequest } from "@/lib/dedupeClientRequest";
+
+const Music = dynamic(() => import("@/components/sub/music"), {
+  loading: () => <div className="min-h-24" aria-label="Loading music player" />,
+});
+
+const LazyMusicPlayer = (props: React.ComponentProps<typeof Music>) => {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [shouldLoad, setShouldLoad] = useState(false);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section || !("IntersectionObserver" in window)) {
+      setShouldLoad(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShouldLoad(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "300px" }
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={sectionRef}>
+      {shouldLoad ? <Music {...props} /> : <div className="min-h-24" />}
+    </div>
+  );
+};
 
 // ============================================================================
 // HERO CATEGORY BUTTONS CAROUSEL
@@ -297,9 +322,11 @@ const Home = () => {
   useEffect(() => {
     const fetchDbTestimonies = async () => {
       try {
-        const res = await axios.get("/api/dbhandler", {
-          params: { model: "posts", for: "testimony" },
-        });
+        const res = await dedupeClientRequest("home:testimonies", () =>
+          axios.get("/api/dbhandler", {
+            params: { model: "posts", for: "testimony" },
+          })
+        );
         if (Array.isArray(res.data) && res.data.length > 0) {
           const dbMapped = res.data.map((item: any) => ({
             id: item.id,
@@ -430,7 +457,7 @@ const Home = () => {
           </div>
         </div>
 
-        <div className="flex-1 w-full max-w-[100vw] flex items-center justify-center relative min-h-[420px] mt-10 my-4 md:my-0 overflow-visible">
+        <div className="flex-1 w-full max-w-[100vw] flex items-center justify-center relative min-h-[360px] md:my-0 overflow-visible">
           <TextCarousel
             text="O Good Forever***O Good Forever***O Good Forever***"
             speed={2000}
@@ -440,14 +467,10 @@ const Home = () => {
             className="w-full max-w-[100vw]"
           />
         </div>
-      </div>
 
-      {/* 2. Rotating hero category buttons; all categories remain selectable even when empty. */}
-      <HeroButtonCarousel />
-
-      {/* 3. In-page Music Component - Under Hero, Above Upcoming Events */}
-      <section className="w-full max-w-5xl mx-auto px-4 my-8">
-        <Music
+        {/* 2. Rotating hero category buttons; all categories remain selectable even when empty. */}
+        <HeroButtonCarousel />
+        <LazyMusicPlayer
           defaultMinimized={true}
           dockedOnMinimize={false}
           defaultRandom={true}
@@ -455,6 +478,13 @@ const Home = () => {
           fullscreenOnMaximize={false}
           allowMinimize={true}
         />
+      </div>
+
+      
+
+      {/* 3. In-page Music Component - Under Hero, Above Upcoming Events */}
+      <section className="w-full max-w-5xl mx-auto px-4 my-8">
+        
       </section>
 
       {/* 4. Upcoming Events Section */}
@@ -803,9 +833,11 @@ const UpcomingEvents = ({ page, media = "" }) => {
     try {
       setLoading(true);
 
-      const response = await axios.get("/api/dbhandler", {
-        params: { model: "posts" },
-      });
+      const response = await dedupeClientRequest("home:events", () =>
+        axios.get("/api/dbhandler", {
+          params: { model: "posts", for: "event", type: "image" },
+        })
+      );
 
       let events = response.data;
 

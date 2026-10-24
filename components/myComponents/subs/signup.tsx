@@ -18,7 +18,6 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-  DrawerTrigger,
 } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 import { Input } from '@/components/ui/input'
@@ -50,6 +49,7 @@ const Signup: React.FC<SignupProps> = ({ trigger, onDrawerOpen }) => {
     sex: 'male'
   });
   const [editId, setEditId] = useState(null);
+  const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
@@ -71,6 +71,35 @@ const Signup: React.FC<SignupProps> = ({ trigger, onDrawerOpen }) => {
   }, [user]);
 
   const form = useRef<HTMLFormElement>(null);
+
+  useEffect(() => () => {
+    if (openTimerRef.current) clearTimeout(openTimerRef.current);
+  }, []);
+
+  const handleTriggerClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (openTimerRef.current) clearTimeout(openTimerRef.current);
+
+    if (onDrawerOpen) {
+      onDrawerOpen();
+      // Close the parent dialog completely before opening this modal drawer.
+      openTimerRef.current = setTimeout(() => setOpen(true), 250);
+      return;
+    }
+
+    setOpen(true);
+  };
+
+  const signupTrigger = trigger || <Button variant="outline">Sign up</Button>;
+  const triggerWithHandoff = React.isValidElement(signupTrigger)
+    ? React.cloneElement(signupTrigger as React.ReactElement<any>, {
+        onClick: (event: React.MouseEvent) => {
+          (signupTrigger.props as any).onClick?.(event);
+          if (!event.defaultPrevented) handleTriggerClick(event);
+        },
+      })
+    : <button type="button" onClick={handleTriggerClick}>Sign up</button>;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -130,14 +159,9 @@ const Signup: React.FC<SignupProps> = ({ trigger, onDrawerOpen }) => {
     <div className='inline'>
       <Drawer
         open={open}
-        onOpenChange={(nextOpen) => {
-          setOpen(nextOpen);
-          if (nextOpen && onDrawerOpen) onDrawerOpen();
-        }}
+        onOpenChange={setOpen}
       >
-        <DrawerTrigger asChild>
-          {trigger || <Button variant="outline">Sign up</Button>}
-        </DrawerTrigger>
+        {triggerWithHandoff}
         <DrawerContent className='flex flex-col justify-center items-center py-10 /bg-red-500 max-w-5xl mx-auto'>
 
           <DrawerHeader>

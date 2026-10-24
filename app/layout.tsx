@@ -63,7 +63,12 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <SessionProvider  session={session}>
+      <SessionProvider
+        session={session ?? null}
+        refetchOnWindowFocus={false}
+        refetchInterval={0}
+        refetchWhenOffline={false}
+      >
         <AppContextProvider>
           <body
             className="antialiased"

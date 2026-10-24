@@ -2,11 +2,14 @@
 import { auth } from "./auth";
 
 export const usersession = async () => {
+  try {
     const session = await auth();
-    // console.log("session from login component",session)
-    if (session?.user) {
-      return session;
-    }
+    return session?.user ? session : null;
+  } catch (error) {
+    // A stale or malformed session cookie should not prevent the page from rendering.
+    console.error("Unable to read the Auth.js session:", error);
+    return null;
+  }
   }
 
 

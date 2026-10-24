@@ -60,6 +60,11 @@ export async function GET(req: NextRequest) {
     const isVerifiedParam = searchParams.get("isVerified");
     const pageParam = searchParams.get("page");
     const limitParam = searchParams.get("limit");
+    const isLightweightPostFeed =
+      modelName === "posts" && (forParam === "event" || forParam === "testimony");
+    const queryInclude = isLightweightPostFeed
+      ? { user: { select: { id: true, name: true, username: true, avatarUrl: true } } }
+      : include;
 
     // Posts search special case
     if (modelName === "posts" && search) {
@@ -120,7 +125,7 @@ export async function GET(req: NextRequest) {
       }
       return NextResponse.json((await prismaModel.findMany({
         where,
-        include,
+        include: queryInclude,
         orderBy: { createdAt: "desc" } as any,
       })).filter((p: any) => p.isVerified !== false));
     }
@@ -129,7 +134,7 @@ export async function GET(req: NextRequest) {
     const limit = Number(limitParam || 0);
     const findArgs: any = {
       where,
-      include,
+      include: queryInclude,
       orderBy: { createdAt: "desc" } as any,
     };
     if (limit > 0) {

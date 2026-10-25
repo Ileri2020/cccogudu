@@ -218,6 +218,7 @@ export const PostButton: React.FC<PostButtonProps> = ({
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     for: defaultFor,
@@ -263,11 +264,19 @@ export const PostButton: React.FC<PostButtonProps> = ({
       setAuthDialogOpen(true);
       return;
     }
+    if (!formData.title.trim()) {
+      toast.error("Add a title before publishing your media.");
+      return;
+    }
 
+    setIsUploading(true);
     try {
       // Get Cloudinary signature from server
       const sigRes = await axios.get("/api/cloudinary-signature");
       const { signature, timestamp, cloudName, apiKey } = sigRes.data;
+      if (!signature || !timestamp || !cloudName || !apiKey) {
+        throw new Error("Cloudinary upload is not configured correctly.");
+      }
 
       // Prepare FormData for Cloudinary
       const data = new FormData();
@@ -281,24 +290,28 @@ export const PostButton: React.FC<PostButtonProps> = ({
         `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
         data,
         {
-          headers: { "Content-Type": "multipart/form-data" },
           onUploadProgress: (progressEvent) => {
-            const percent = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
-            setUploadProgress(percent);
+            if (progressEvent.total) {
+              setUploadProgress(Math.round((progressEvent.loaded * 100) / progressEvent.total));
+            }
           },
         }
       );
 
       const fileUrl = cloudRes.data.secure_url;
+      if (!fileUrl) {
+        throw new Error("Cloudinary did not return a media URL.");
+      }
 
       // POST to backend
-      await axios.post(`/api/dbhandler?model=posts`, {
+      const postResponse = await axios.post(`/api/dbhandler?model=posts`, {
         ...formData,
         userId: user.id,
         url: fileUrl,
       });
+      if (!postResponse.data?.id) {
+        throw new Error("The media upload completed, but the post was not saved.");
+      }
 
       toast.success("Your post was published successfully.");
       resetForm();
@@ -306,7 +319,12 @@ export const PostButton: React.FC<PostButtonProps> = ({
       if (onPostSuccess) onPostSuccess();
     } catch (err: any) {
       console.error("Upload error:", err);
-      toast.error(err?.response?.data?.error || "Upload failed. Please try again.");
+      toast.error(
+        err?.response?.data?.details || err?.response?.data?.error ||
+        err?.message || "Upload failed. Please try again."
+      );
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -420,8 +438,8 @@ export const PostButton: React.FC<PostButtonProps> = ({
                   Cancel
                 </Button>
               </DrawerClose>
-              <Button type="submit" className="flex-1 before:ani-shadow w-full">
-                Upload &rarr;
+              <Button type="submit" disabled={isUploading} className="flex-1 before:ani-shadow w-full">
+                {isUploading ? `Uploading${uploadProgress ? ` ${uploadProgress}%` : "..."}` : "Upload →"}
               </Button>
             </DrawerFooter>
           </form>

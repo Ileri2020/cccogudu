@@ -2,7 +2,9 @@
 
 import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import axios from "axios";
+import Autoplay from "embla-carousel-autoplay";
 import { toast } from "sonner";
 import {
   Play,
@@ -268,6 +270,11 @@ export const Music: React.FC<MusicProps> = ({
   defaultRandom = false,
   defaultCategory = "ccc",
 }) => {
+  const router = useRouter();
+  const categoryAutoplay = useMemo(
+    () => Autoplay({ delay: 2200, stopOnInteraction: false, stopOnMouseEnter: true }),
+    []
+  );
   // Mode: "audio" (default) or "video"
   const [mediaMode, setMediaMode] = useState<"audio" | "video">("audio");
 
@@ -320,6 +327,7 @@ export const Music: React.FC<MusicProps> = ({
   const gainNodeRef = useRef<GainNode | null>(null); // For 1.5x volume amplification
   const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const isSeekingRef = useRef(false);
 
   /** ----------------------------------------------------------------
    * FETCH CLOUDINARY MEDIA FROM DATABASE
@@ -600,6 +608,30 @@ export const Music: React.FC<MusicProps> = ({
     return mediaMode === "video" ? videoRef.current : audioRef.current;
   }, [mediaMode]);
 
+  const syncMediaTime = useCallback(() => {
+    const media = getActiveMedia();
+    if (!media) return;
+
+    if (!isSeekingRef.current && Number.isFinite(media.currentTime)) {
+      setCurrentTime(media.currentTime);
+    }
+    if (Number.isFinite(media.duration) && media.duration > 0) {
+      setDuration(media.duration);
+    }
+  }, [getActiveMedia]);
+
+  const handleMediaTimeUpdate = (media: HTMLMediaElement) => {
+    if (!isSeekingRef.current && Number.isFinite(media.currentTime)) {
+      setCurrentTime(media.currentTime);
+    }
+  };
+
+  useEffect(() => {
+    if (!isPlaying) return;
+    const timer = window.setInterval(syncMediaTime, 200);
+    return () => window.clearInterval(timer);
+  }, [isPlaying, syncMediaTime]);
+
   const togglePlayPause = useCallback(async () => {
     const media = getActiveMedia();
     if (!media) return;
@@ -681,11 +713,21 @@ export const Music: React.FC<MusicProps> = ({
   }, [playbackMode, getActiveMedia, handleNextTrack]);
 
   const handleSeek = (value: number[]) => {
-    const target = value[0];
+    const target = Math.max(0, Math.min(value[0] ?? 0, duration || Infinity));
     const media = getActiveMedia();
     if (media) {
-      media.currentTime = target;
-      setCurrentTime(target);
+      try {
+        isSeekingRef.current = true;
+        media.currentTime = target;
+        setCurrentTime(target);
+        window.setTimeout(() => {
+          isSeekingRef.current = false;
+          syncMediaTime();
+        }, 150);
+      } catch (error) {
+        isSeekingRef.current = false;
+        toast.error("This media does not support seeking yet.");
+      }
     }
   };
 
@@ -851,7 +893,7 @@ export const Music: React.FC<MusicProps> = ({
         <audio
           ref={audioRef}
           src={currentTrack.audioUrl}
-          onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+          onTimeUpdate={(e) => handleMediaTimeUpdate(e.currentTarget)}
           onLoadedMetadata={(e) => setDuration(e.currentTarget.duration || currentTrack.duration || 215)}
           onEnded={handleTrackEnded}
           crossOrigin="anonymous"
@@ -1013,7 +1055,7 @@ export const Music: React.FC<MusicProps> = ({
       <audio
         ref={audioRef}
         src={currentTrack.audioUrl}
-        onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+        onTimeUpdate={(e) => handleMediaTimeUpdate(e.currentTarget)}
         onLoadedMetadata={(e) => setDuration(e.currentTarget.duration || currentTrack.duration || 215)}
         onEnded={handleTrackEnded}
         crossOrigin="anonymous"
@@ -1058,7 +1100,9 @@ export const Music: React.FC<MusicProps> = ({
           <div className="flex items-center gap-2 sm:gap-3">
             <Tabs
               value={mediaMode}
-              onValueChange={(val) => handleModeSwitch(val as "audio" | "video")}
+              onValueChange={(val) => {
+                if (val === "audio") handleModeSwitch("audio");
+              }}
               className="w-auto"
             >
               <TabsList className="bg-muted/60 p-1 border border-border/60 rounded-full h-10">
@@ -1071,6 +1115,24 @@ export const Music: React.FC<MusicProps> = ({
                 </TabsTrigger>
                 <TabsTrigger
                   value="video"
+                  onClick={() => {
+                    const category = selectedCategory.toLowerCase();
+                    const playlistCategory = category === "all"
+                      ? "praise"
+                      : category === "ccc hymns" || category === "hymn"
+                        ? "hymns"
+                        : category === "youth"
+                          ? "dance"
+                          : category === "ccc ogudu"
+                            ? "ccc"
+                            : category.replace(/video/g, "");
+                    const blogPage = ["praise", "worship", "ccc", "bible", "hymns", "dance", "musical", "revival"].includes(playlistCategory)
+                      ? playlistCategory
+                      : "ccc";
+                    router.push(
+                      `/blog/${encodeURIComponent(currentTrack.id)}?page=${encodeURIComponent(blogPage)}&playlist=${encodeURIComponent(selectedCategory)}`
+                    );
+                  }}
                   className="rounded-full px-3 sm:px-4 py-1.5 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm flex items-center gap-1.5"
                 >
                   <VideoIcon className="w-3.5 h-3.5 text-primary" />
@@ -1123,6 +1185,66 @@ export const Music: React.FC<MusicProps> = ({
         </div>
       </CardHeader>
 
+      {isPlaylistSheetOpen && (
+        <div className="absolute inset-x-3 bottom-3 top-20 z-40 flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-background/95 p-4 shadow-2xl backdrop-blur-xl sm:inset-x-6 sm:bottom-6 sm:top-24">
+          <div className="mb-3 flex items-start justify-between gap-3 border-b border-border/70 pb-3">
+            <div>
+              <h3 className="flex items-center gap-2 font-semibold text-foreground">
+                <ListMusic className="h-5 w-5 text-accent" />
+                {selectedCategory === "all" ? "All music" : `${selectedCategory} playlist`}
+              </h3>
+              <p className="mt-1 text-xs text-muted-foreground">{playlist.length} tracks in this playlist</p>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0"
+              onClick={() => setIsPlaylistSheetOpen(false)}
+              aria-label="Close playlist"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+            {playlist.map((track, index) => {
+              const isCurrent = index === currentTrackIndex;
+              return (
+                <button
+                  key={track.id}
+                  type="button"
+                  onClick={() => {
+                    selectTrack(index);
+                    setIsPlaylistSheetOpen(false);
+                  }}
+                  className={cn(
+                    "flex w-full items-center gap-3 rounded-xl border p-2.5 text-left transition-colors",
+                    isCurrent
+                      ? "border-accent bg-accent/10"
+                      : "border-border/60 bg-muted/30 hover:border-accent/40 hover:bg-accent/5"
+                  )}
+                >
+                  <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-black">
+                    <Image src={track.thumbnailUrl} alt="" fill unoptimized className="object-cover" />
+                    {isCurrent && isPlaying && (
+                      <span className="absolute inset-0 flex items-center justify-center bg-black/40">
+                        <Disc3 className="h-4 w-4 animate-spin text-accent" />
+                      </span>
+                    )}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold text-foreground">{track.title}</span>
+                    <span className="block truncate text-xs text-muted-foreground">{track.artist}</span>
+                  </span>
+                  {isCurrent && <Badge className="shrink-0">Playing</Badge>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <CardContent className="p-5 sm:p-8 space-y-6">
         {/* 1. CONTINUOUS CATEGORIES CAROUSEL */}
         <div className="relative w-full">
@@ -1149,6 +1271,7 @@ export const Music: React.FC<MusicProps> = ({
               align: "start",
               loop: true,
             }}
+            plugins={[categoryAutoplay]}
             className="w-full relative px-1"
           >
             <CarouselContent className="-ml-2">
@@ -1419,7 +1542,7 @@ export const Music: React.FC<MusicProps> = ({
                 ref={videoRef}
                 src={currentTrack.videoUrl || currentTrack.audioUrl}
                 poster={currentTrack.thumbnailUrl}
-                onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+                onTimeUpdate={(e) => handleMediaTimeUpdate(e.currentTarget)}
                 onLoadedMetadata={(e) => setDuration(e.currentTarget.duration || currentTrack.duration || 215)}
                 onEnded={handleTrackEnded}
                 crossOrigin="anonymous"
@@ -1566,77 +1689,23 @@ export const Music: React.FC<MusicProps> = ({
                 </Tooltip>
               </TooltipProvider>
 
-              <Sheet open={isPlaylistSheetOpen} onOpenChange={setIsPlaylistSheetOpen}>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <SheetTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9 rounded-full text-muted-foreground hover:text-foreground"
-                          aria-label="View Queue"
-                        >
-                          <ListFilter className="w-4 h-4" />
-                        </Button>
-                      </SheetTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">Playlist Queue ({playlist.length})</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                <SheetContent side="left" className="w-full sm:max-w-md p-6 flex flex-col">
-                  <SheetHeader>
-                    <SheetTitle className="flex items-center gap-2">
-                      <ListMusic className="w-5 h-5 text-accent" />
-                      Worship & Praise Playlist
-                    </SheetTitle>
-                    <SheetDescription>
-                      Cloudinary audio feeds ({playlist.length} available).
-                    </SheetDescription>
-                  </SheetHeader>
-
-                  <div className="flex-1 overflow-y-auto space-y-2 my-4 pr-1">
-                    {playlist.map((trk, idx) => {
-                      const isCurrent = idx === currentTrackIndex;
-                      return (
-                        <div
-                          key={trk.id}
-                          onClick={() => selectTrack(idx)}
-                          className={cn(
-                            "flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-all border",
-                            isCurrent
-                              ? "bg-accent/15 border-accent text-foreground font-medium"
-                              : "bg-muted/30 border-transparent hover:bg-muted/70 text-muted-foreground hover:text-foreground"
-                          )}
-                        >
-                          <div className="relative w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-black">
-                            <Image
-                              src={trk.thumbnailUrl}
-                              alt={trk.title}
-                              fill
-                              unoptimized
-                              className="object-cover"
-                            />
-                            {isCurrent && isPlaying && (
-                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                                <Disc3 className="w-4 h-4 text-accent animate-spin" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold truncate text-foreground">{trk.title}</p>
-                            <p className="text-xs text-muted-foreground">{trk.artist}</p>
-                          </div>
-                          <Badge variant="outline" className="text-[10px] uppercase">
-                            {trk.category}
-                          </Badge>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </SheetContent>
-              </Sheet>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={isPlaylistSheetOpen ? "secondary" : "ghost"}
+                      size="icon"
+                      className="h-9 w-9 rounded-full text-muted-foreground hover:text-foreground"
+                      onClick={() => setIsPlaylistSheetOpen((open) => !open)}
+                      aria-label={isPlaylistSheetOpen ? "Hide playlist" : "Show playlist"}
+                      aria-expanded={isPlaylistSheetOpen}
+                    >
+                      <ListFilter className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Playlist ({playlist.length})</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
 
             {/* Center Controls: Prev, Play/Pause, Next */}

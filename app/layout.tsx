@@ -11,6 +11,7 @@ import { Footer3 } from "@/components/myComponents/subs/footer3";
 import { SessionProvider } from "next-auth/react"
 import { usersession } from "@/session";
 import { PageVisitTracker } from "@/components/utility/page-visit-tracker";
+import { Toaster } from "@/components/ui/sonner";
 // import { getSession } from "next-auth/react";
 // import {Roboto} from "next/font/google"
 
@@ -84,6 +85,7 @@ export default async function RootLayout({
                   <PageVisitTracker />
                   <Navbar />
                   {children}
+                  <Toaster position="top-right" richColors closeButton />
                   <Footer3 className="mt-2" />
                 </ThemeProvider>
               </Providers>

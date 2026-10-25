@@ -393,46 +393,50 @@ const Home = () => {
       text: testimonyMessage.trim(),
     };
 
-    // Immediate optimistic update
-    setTestimonyList((prev) => [newTestimonial, ...prev]);
-
-    // Save to MongoDB database
+    // Save to MongoDB before updating the carousel so a failed request is not shown as published.
     try {
       const authHeaders = user?.token ? { Authorization: `Bearer ${user.token}` } : {};
-      await axios.post(
+      const response = await axios.post(
         "/api/dbhandler?model=posts",
         {
           title: testimonyName.trim(),
           description: testimonyMessage.trim(),
           url: avatar,
           for: ["testimony"],
-          type: "testimony",
+          type: "image",
           userId: (user?.id && user.id !== "nil") ? user.id : undefined,
-          role: handle,
           isVerified: true,
         },
         { headers: authHeaders }
       );
+      const created = response.data;
+      setTestimonyList((prev) => [{
+        id: created?.id,
+        author: {
+          name: created?.title || newTestimonial.author.name,
+          handle: created?.user?.username ? `@${created.user.username}` : handle,
+          avatar: created?.url || avatar,
+        },
+        text: created?.description || newTestimonial.text,
+      }, ...prev]);
       submissionSucceeded = true;
       toast.success("Hallelujah! Your testimony has been saved to the database and shared with the congregation.");
     } catch (dbErr) {
       console.error("Failed to save testimony to DB:", dbErr);
-      try {
-        const saved = localStorage.getItem("ccl_user_testimonies");
-        const currentSaved = saved ? JSON.parse(saved) : [];
-        localStorage.setItem("ccl_user_testimonies", JSON.stringify([newTestimonial, ...currentSaved]));
-        toast.error("We could not save to the live feed, but your testimony was saved locally for now.");
-      } catch (_) {
-        toast.error("Unable to save your testimony right now. Please try again.");
-      }
+      const message = axios.isAxiosError(dbErr)
+        ? dbErr.response?.data?.details || dbErr.response?.data?.error
+        : undefined;
+      toast.error(message || "Unable to publish your testimony. Please try again.");
     } finally {
       setIsSubmittingTestimony(false);
       if (submissionSucceeded) {
         setIsTestimonyDialogOpen(false);
       }
-      setTestimonyName("");
-      setTestimonyRole("");
-      setTestimonyMessage("");
+      if (submissionSucceeded) {
+        setTestimonyName("");
+        setTestimonyRole("");
+        setTestimonyMessage("");
+      }
     }
   };
 
@@ -617,10 +621,11 @@ const Home = () => {
               </Button>
               <Button
                 type="submit"
+                disabled={isSubmittingTestimony}
                 className="rounded-full bg-accent hover:bg-accent/90 text-accent-foreground font-semibold flex items-center gap-1.5 shadow-md shadow-accent/20"
               >
                 <Send className="w-4 h-4" />
-                <span>Submit Testimony</span>
+                <span>{isSubmittingTestimony ? "Publishing..." : "Submit Testimony"}</span>
               </Button>
             </DialogFooter>
           </form>
@@ -726,26 +731,26 @@ const UpcomingEvents = ({ page, media = "" }) => {
       let flyerUrl = "https://res.cloudinary.com/dc5khnuiu/image/upload/v1752627019/uxokaq0djttd7gsslwj9.png";
 
       if (eventFile) {
-        try {
-          const sigRes = await axios.get("/api/cloudinary-signature");
-          const { signature, timestamp, cloudName, apiKey } = sigRes.data;
-
-          const data = new FormData();
-          data.append("file", eventFile);
-          data.append("api_key", apiKey);
-          data.append("timestamp", timestamp);
-          data.append("signature", signature);
-
-          const cloudRes = await axios.post(
-            `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
-            data
-          );
-          if (cloudRes.data?.secure_url) {
-            flyerUrl = cloudRes.data.secure_url;
-          }
-        } catch (uploadErr) {
-          console.error("Cloudinary upload failed, using fallback flyer:", uploadErr);
+        const sigRes = await axios.get("/api/cloudinary-signature");
+        const { signature, timestamp, cloudName, apiKey } = sigRes.data;
+        if (!signature || !timestamp || !cloudName || !apiKey) {
+          throw new Error("Event flyer upload is not configured correctly.");
         }
+
+        const data = new FormData();
+        data.append("file", eventFile);
+        data.append("api_key", apiKey);
+        data.append("timestamp", timestamp);
+        data.append("signature", signature);
+
+        const cloudRes = await axios.post(
+          `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+          data
+        );
+        if (!cloudRes.data?.secure_url) {
+          throw new Error("Cloudinary did not return an event flyer URL.");
+        }
+        flyerUrl = cloudRes.data.secure_url;
       }
 
       const authHeaders = user?.token ? { Authorization: `Bearer ${user.token}` } : {};
@@ -754,7 +759,6 @@ const UpcomingEvents = ({ page, media = "" }) => {
         {
           title: eventTitle.trim(),
           description: eventDescription.trim(),
-          post: eventDescription.trim(),
           url: flyerUrl,
           for: ["event"],
           type: "image",
@@ -773,7 +777,10 @@ const UpcomingEvents = ({ page, media = "" }) => {
       fetchEvents();
     } catch (err: any) {
       console.error("Failed to post event:", err);
-      toast.error(err?.response?.data?.error || "Failed to post event. Please try again.");
+      toast.error(
+        err?.response?.data?.details || err?.response?.data?.error ||
+        err?.message || "Failed to post event. Please try again."
+      );
     } finally {
       setIsSubmittingEvent(false);
     }
